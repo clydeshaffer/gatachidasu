@@ -90,6 +90,10 @@ int main () {
 
         grid_draw();
 
+        if(player1_new_buttons & INPUT_MASK_START) {
+            grid_init(bgImg);
+        }
+
         queue_draw_sprite(player_x - 8, 103, 16, 16, 33, 103, bgImg);
 
         queue_clear_border(0);
