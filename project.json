@@ -1,6 +1,6 @@
 {
-    "title" : "My GameTank Game",
-    "romname" : "game.gtr",
+    "title" : "Katachidasu",
+    "romname" : "katachidasu.gtr",
     "progbanks" : 1,
     "modules" : [
         "PERSIST",

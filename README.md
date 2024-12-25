@@ -1,4 +1,10 @@
-# My GameTank Game
+# Katachidasu for GameTank
+
+A puzzle game for the GameTank.
+Shoot blocks to carve a picture.
+Don't carve too much!
+
+## Compiling:
 
 Build it with the "make" command
 

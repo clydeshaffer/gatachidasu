@@ -6,7 +6,7 @@ Instrument piano = {
   0x04, 0x02, 0x10, 0x30,
   0, 0, 0, 0, 
   0,
-  0
+  -12
 };
 
 Instrument guitar = {
