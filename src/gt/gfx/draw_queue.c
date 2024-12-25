@@ -161,17 +161,11 @@ void queue_clear_screen(char c) {
 void await_draw_queue() {
     //If draw queue isn't installed leave the stub in case something waits for it
 #ifdef ENABLE_MODULE_DRAWQUEUE
-    asm ("SEI");
-    if(queue_pending != 0) {
-        await_drawing();
-    }
-    while(queue_end != queue_start) {
-        next_draw_queue();
-        asm ("CLI");
-        await_drawing();
-    }
-    vram[START] = 0;
-    queue_pending = 0;
     asm ("CLI");
+    while (queue_pending)
+    {
+        wait();
+    }
+    
 #endif
 }

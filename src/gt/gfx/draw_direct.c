@@ -18,6 +18,7 @@ void direct_prepare_sprite_mode(SpriteSlot sprite) {
     *bank_reg = banksMirror;
     direct_sprite_offset_x = SPRITE_OFFSET_X(sprite);
     direct_sprite_offset_y = SPRITE_OFFSET_Y(sprite);
+    asm ("CLI");
 }
 
 void direct_quick_select_sprite(SpriteSlot sprite) {
@@ -36,6 +37,7 @@ void direct_prepare_box_mode() {
     banksMirror &= ~(BANK_RAM_MASK | BANK_SECOND_FRAMEBUFFER);
     banksMirror |= bankflip | BANK_CLIP_X | BANK_CLIP_Y;
     *bank_reg = banksMirror;
+    asm ("CLI");
 }
 
 void direct_prepare_array_mode() {
@@ -128,5 +130,6 @@ void direct_draw_sprite_frame(SpriteSlot sprite, char x, char y, char frame, cha
     vram[WIDTH] = sprite_temp_frame.w | (flip & SPRITE_FLIP_X ? 128 : 0);
     vram[HEIGHT] = sprite_temp_frame.h | (flip & SPRITE_FLIP_Y ? 128 : 0);
 
+    asm ("CLI");
     DIRECT_DRAW_START();
 }
