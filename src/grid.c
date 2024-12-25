@@ -9,7 +9,7 @@ char grid_rotation;
 char grid_y_pos;
 SpriteSlot grid_sprite;
 
-const char grid_angles[25] = {
+const char grid_angles[GRID_FULL_COUNT] = {
     -48, -41, -32, -23, -16,
     -55, -48, -32, -16, -9,
     64, 64, 0, 0, 0,
@@ -17,7 +17,7 @@ const char grid_angles[25] = {
     48, 41, 32, 23, 16
 };
 
-const char grid_radius[25] = {
+const char grid_radius[GRID_FULL_COUNT] = {
     4, 3, 2, 3, 4,
     3, 1, 0, 1, 3,
     2, 0,-1, 0, 2,
@@ -25,7 +25,12 @@ const char grid_radius[25] = {
     4, 3, 2, 3, 4
 };
 
-char grid_status[25];
+char grid_status[GRID_FULL_COUNT];
+
+char grid_target[GRID_FULL_COUNT];
+char solution_rotations_mask;
+char blocks_remaining;
+char target_block_count;
 
 #define BULLET_MAX 5
 char next_bullet;
@@ -42,11 +47,62 @@ void grid_init(SpriteSlot s) {
         bullets_x[i] = 0;
         bullets_y[i] = 0;
     }
-    for(i = 0; i < 25; ++i) {
+    for(i = 0; i < GRID_FULL_COUNT; ++i) {
         grid_status[i] = 0b10000;
     }
     active_bullets = 0;
     next_bullet = 0;
+    blocks_remaining = GRID_FULL_COUNT;
+}
+
+void grid_setup_puzzle(char* shape) {
+    static char i, r, c;
+    solution_rotations_mask = 0b1111;
+    target_block_count = 0;
+
+    for(i = 0; i < GRID_FULL_COUNT; ++i) {
+        grid_status[i] = 0b10000;
+    }
+
+    for(i = 0; i < GRID_FULL_COUNT; ++i) {
+        grid_target[i] = shape[i] ? 0xFF : 0;
+        if(grid_target[i]) ++target_block_count;
+    }
+
+    //March the grid in this order for each rotation
+    //R+, C+
+    //C-, R+
+    //R-, C-
+    //C+, R-
+
+    i = 0; //index into grid_status
+    for(r = 0; r < GRID_SIZE; ++r) {
+        for(c = 0; c < GRID_SIZE; ++c) {
+            grid_status[i] |= grid_target[i] & 0b0001;
+            ++i;
+        }
+    }
+    i = 0; //index into grid_status
+    for(c = GRID_SIZE-1; c < GRID_SIZE; --c) {
+        for(r = 0; r < GRID_FULL_COUNT; r += GRID_SIZE) {
+            grid_status[i] |= grid_target[r+c] & 0b0010;
+            ++i;
+        }
+    }
+    i = 0; //index into grid_status
+    for(r = GRID_FULL_COUNT-GRID_SIZE; r < GRID_FULL_COUNT; r -= GRID_SIZE) {
+        for(c = GRID_SIZE-1; c < GRID_SIZE; --c)  {
+            grid_status[i] |= grid_target[r+c] & 0b0100;
+            ++i;
+        }
+    }
+    i = 0; //index into grid_status
+    for(c = 0; c < GRID_SIZE; ++c) {
+        for(r = GRID_FULL_COUNT-GRID_SIZE; r < GRID_FULL_COUNT; r -= GRID_SIZE)  {
+            grid_status[i] |= grid_target[r+c] & 0b1000;
+            ++i;
+        }
+    }
 }
 
 void grid_send_bullet(char x) {
@@ -57,9 +113,12 @@ void grid_send_bullet(char x) {
     if(++next_bullet == BULLET_MAX) next_bullet = 0;
 }
 
-void grid_draw() {
+char grid_draw() {
     static char r, c, i, grid_rotation_cosine, grid_ind;
-    signed char x, y;
+    static char result;
+    static signed char x, y;
+
+    result = GRID_DRAW_RESULT_NONE;
 
     direct_prepare_sprite_mode(grid_sprite);
     
@@ -98,7 +157,14 @@ void grid_draw() {
                                 bullets_x[i] = 0;
                                 bullets_y[i] = 0;
                                 --active_bullets;
+                                solution_rotations_mask &= ~grid_status[grid_ind];
                                 grid_status[grid_ind] = 0;
+                                --blocks_remaining;
+                                if(solution_rotations_mask == 0) {
+                                    result = GRID_DRAW_RESULT_LOSE;
+                                } else if(blocks_remaining == target_block_count) {
+                                    result = GRID_DRAW_RESULT_WIN;
+                                }
                             }
                         }
                     }
@@ -120,5 +186,19 @@ void grid_draw() {
         }
     }
 
+    grid_ind = 0;
+    y = 38;
+    for(r = 0; r < GRID_SIZE; ++r) {
+        x = 87;
+        for(c = 0; c < GRID_SIZE; ++c) {
+            if(grid_target[grid_ind] & 1) {
+                DIRECT_DRAW_SPRITE(x, y, 7, 7, 87, 38);
+            }
+            x += 7;
+            ++grid_ind;
+        }
+        y += 7;
+    }
     //await_drawing();
+    return result;
 }
