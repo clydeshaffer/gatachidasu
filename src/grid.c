@@ -27,8 +27,9 @@ const char grid_radius[25] = {
 
 char grid_status[25];
 
-#define BULLET_MAX 3
-char next_bullet = 0;
+#define BULLET_MAX 5
+char next_bullet;
+char active_bullets;
 char bullets_x[BULLET_MAX];
 char bullets_y[BULLET_MAX];
 
@@ -44,9 +45,13 @@ void grid_init(SpriteSlot s) {
     for(i = 0; i < 25; ++i) {
         grid_status[i] = 0b10000;
     }
+    active_bullets = 0;
+    next_bullet = 0;
 }
 
 void grid_send_bullet(char x) {
+    if(active_bullets == BULLET_MAX) return;
+    ++active_bullets;
     bullets_x[next_bullet] = x;
     bullets_y[next_bullet] = 104;
     if(++next_bullet == BULLET_MAX) next_bullet = 0;
@@ -65,6 +70,7 @@ void grid_draw() {
             bullets_y[i] -= 2;
             if(bullets_y[i] == 0) {
                 bullets_x[i] = 0;
+                --active_bullets;
             }
         }
     }
@@ -85,13 +91,13 @@ void grid_draw() {
 
                 x += GRID_CENTER_X;
                 y += grid_y_pos;
-
                 for(i = 0; i < BULLET_MAX; ++i) {
                     if(bullets_x[i]) {
                         if(((char)(bullets_x[i] - x - GRID_SQUARE_OFFSET)) <= GRID_SQUARE_SIZE) {
                             if(((char)(bullets_y[i] - y - GRID_SQUARE_OFFSET)) <= GRID_SQUARE_SIZE) {
                                 bullets_x[i] = 0;
                                 bullets_y[i] = 0;
+                                --active_bullets;
                                 grid_status[grid_ind] = 0;
                             }
                         }

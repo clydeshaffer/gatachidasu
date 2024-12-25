@@ -16,6 +16,8 @@ char rotation_timer = 0;
 
 char player_x;
 
+char target_x;
+
 int main () {
  
     init_graphics();
@@ -23,6 +25,7 @@ int main () {
 
     grid_init(bgImg);
     player_x = GRID_CENTER_X;
+    target_x = GRID_CENTER_X;
 
     play_song(ASSET__music__katachidasu_mid, REPEAT_LOOP);
 
@@ -33,13 +36,13 @@ int main () {
 
         if(rotation_timer) {
 
-            if(player1_new_buttons & INPUT_MASK_A) {
+            if(player1_new_buttons & INPUT_MASK_B) {
                 if(rotation_direction == 1) {
                     rotation_direction = -1;
                     rotation_timer = ROTATION_ANGLE - rotation_timer;
                 }
             }
-            if(player1_new_buttons & INPUT_MASK_B) {
+            if(player1_new_buttons & INPUT_MASK_A) {
                 if(rotation_direction == 255) {
                     rotation_direction = 1;
                     rotation_timer = ROTATION_ANGLE - rotation_timer;
@@ -53,25 +56,37 @@ int main () {
             }
         } else {
             rotation_direction = 0;
-            if(player1_new_buttons & INPUT_MASK_A) {
+            if(player1_new_buttons & INPUT_MASK_B) {
                 --rotation_direction;
             }
-            if(player1_new_buttons & INPUT_MASK_B) {
+            if(player1_new_buttons & INPUT_MASK_A) {
                 ++rotation_direction;
             }
             if(rotation_direction) {
                 rotation_timer = ROTATION_ANGLE;
-            } else if(player1_new_buttons & INPUT_MASK_C) {
-                grid_send_bullet(player_x);
             }
         }
 
-        if(player1_buttons & INPUT_MASK_LEFT) {
-            --player_x;
+        if(player1_new_buttons & INPUT_MASK_LEFT) {
+            target_x -= 8;
         }
-        if(player1_buttons & INPUT_MASK_RIGHT) {
-            ++player_x;
+        if(player1_new_buttons & INPUT_MASK_RIGHT) {
+            target_x += 8;
         }
+
+        if(target_x < (GRID_CENTER_X - 16)) {
+            target_x = GRID_CENTER_X - 16;
+        } else if(target_x > (GRID_CENTER_X + 16)) {
+            target_x = GRID_CENTER_X + 16;
+        }
+
+        if(target_x == player_x) {
+            if(player1_new_buttons & INPUT_MASK_C) {
+                grid_send_bullet(player_x);
+            }
+        }
+        if(target_x < player_x) player_x -= 2;
+        if(target_x > player_x) player_x += 2;
 
         grid_draw();
 
