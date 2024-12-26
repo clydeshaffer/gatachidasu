@@ -25,8 +25,12 @@ const char grid_radius[GRID_FULL_COUNT] = {
     4, 3, 2, 3, 4
 };
 
-char grid_status[GRID_FULL_COUNT];
+#define GRID_MODE_GAME 0
+#define GRID_MODE_EXPLODE 1
+#define GRID_MODE_DISPLAY 2
 
+char grid_render_mode;
+char grid_status[GRID_FULL_COUNT];
 char grid_target[GRID_FULL_COUNT];
 char solution_rotations_mask;
 char blocks_remaining;
@@ -37,6 +41,15 @@ char next_bullet;
 char active_bullets;
 char bullets_x[BULLET_MAX];
 char bullets_y[BULLET_MAX];
+
+extern char global_tick;
+
+//These coordinates are only used in explode mode
+//Otherwise blocks are drawn with polar coords
+signed char grid_explode_x[GRID_FULL_COUNT];
+signed char grid_explode_y[GRID_FULL_COUNT];
+signed char grid_explode_vx[GRID_FULL_COUNT];
+signed char grid_explode_vy[GRID_FULL_COUNT];
 
 void grid_init(SpriteSlot s) {
     static char i;
@@ -53,20 +66,41 @@ void grid_init(SpriteSlot s) {
     active_bullets = 0;
     next_bullet = 0;
     blocks_remaining = GRID_FULL_COUNT;
+    grid_render_mode = GRID_MODE_GAME;
+    solution_rotations_mask = 0b1111;
+}
+
+void grid_setup_explode() {
+    static char i, grid_rotation_cosine;
+    grid_rotation_cosine = grid_rotation+32;
+    for(i = 0; i < GRID_FULL_COUNT; ++i) {
+        if(grid_status[i]) {
+            setSineMode(grid_radius[i]);
+            grid_explode_y[i] = getSine(grid_angles[i] + grid_rotation);
+            grid_explode_x[i] = getSine(grid_angles[i] + grid_rotation_cosine);
+            grid_explode_vy[i] = (grid_explode_y[i] >> 3) + 3;
+            grid_explode_vx[i] = grid_explode_x[i] >> 3;
+            grid_explode_y[i] += GRID_SQUARE_OFFSET + grid_y_pos;
+            grid_explode_x[i] += GRID_SQUARE_OFFSET + GRID_CENTER_X;
+        }
+    }
+    grid_render_mode = GRID_MODE_EXPLODE;
 }
 
 void grid_setup_puzzle(char* shape) {
     static char i, r, c;
-    solution_rotations_mask = 0b1111;
-    target_block_count = 0;
+    
 
     for(i = 0; i < GRID_FULL_COUNT; ++i) {
         grid_status[i] = 0b10000;
     }
 
-    for(i = 0; i < GRID_FULL_COUNT; ++i) {
-        grid_target[i] = shape[i] ? 0xFF : 0;
-        if(grid_target[i]) ++target_block_count;
+    if(shape != 0xFFFF) {
+        target_block_count = 0;
+        for(i = 0; i < GRID_FULL_COUNT; ++i) {
+            grid_target[i] = shape[i] ? 0xFF : 0;
+            if(grid_target[i]) ++target_block_count;
+        }
     }
 
     //March the grid in this order for each rotation
@@ -136,53 +170,88 @@ char grid_draw() {
 
     grid_ind = 0;
 
-    for(r = 0; r < GRID_SIZE; ++r) {
-        for(c = 0; c < GRID_SIZE; ++c) {
-            if(grid_status[grid_ind]) {
-                if(grid_radius[grid_ind] & 0x80) {
-                    x = 0;
-                    y = 0;
-                } else {
-                    setSineMode(grid_radius[grid_ind]);
-                    y = getSine(grid_angles[grid_ind] + grid_rotation);
-                    x = getSine(grid_angles[grid_ind] + grid_rotation_cosine);
+    if(grid_render_mode == GRID_MODE_EXPLODE) {
+        for(r = 0; r < GRID_SIZE; ++r) {
+            for(c = 0; c < GRID_SIZE; ++c) {
+                if(grid_status[grid_ind]) {
+                    DIRECT_DRAW_SPRITE(grid_explode_x[grid_ind], grid_explode_y[grid_ind], GRID_SQUARE_SIZE, GRID_SQUARE_SIZE, GRID_SPRITE_X, GRID_SPRITE_Y);
+                    
+                    grid_explode_y[grid_ind] += grid_explode_vy[grid_ind];
+                    grid_explode_y[grid_ind] += global_tick & 1;
+                    if((global_tick & 3) == 0) {
+                        grid_explode_x[grid_ind] += grid_explode_vx[grid_ind];
+                    }
+                    if((grid_explode_y[grid_ind] > 100) ||
+                       (grid_explode_x[grid_ind] > 76) ||
+                       (grid_explode_x[grid_ind] < 4)
+                    ) {
+                        grid_status[grid_ind] = 0;
+                        --blocks_remaining;
+                    }
+                    
+                    
                 }
+                ++grid_ind;
+            }
+        }
+        if(blocks_remaining == 0) {
+            grid_init(grid_sprite);
+            grid_setup_puzzle(GRID_RESET_PUZZLE);
+        }
+    } else {
+        for(r = 0; r < GRID_SIZE; ++r) {
+            for(c = 0; c < GRID_SIZE; ++c) {
+                if(grid_status[grid_ind]) {
+                    
+                    if(grid_radius[grid_ind] & 0x80) {
+                        x = 0;
+                        y = 0;
+                    } else {
+                        setSineMode(grid_radius[grid_ind]);
+                        y = getSine(grid_angles[grid_ind] + grid_rotation);
+                        x = getSine(grid_angles[grid_ind] + grid_rotation_cosine);
+                    }
 
-                x += GRID_CENTER_X;
-                y += grid_y_pos;
-                for(i = 0; i < BULLET_MAX; ++i) {
-                    if(bullets_x[i]) {
-                        if(((char)(bullets_x[i] - x - GRID_SQUARE_OFFSET)) <= GRID_SQUARE_SIZE) {
-                            if(((char)(bullets_y[i] - y - GRID_SQUARE_OFFSET)) <= GRID_SQUARE_SIZE) {
-                                bullets_x[i] = 0;
-                                bullets_y[i] = 0;
-                                --active_bullets;
-                                solution_rotations_mask &= ~grid_status[grid_ind];
-                                grid_status[grid_ind] = 0;
-                                --blocks_remaining;
-                                if(solution_rotations_mask == 0) {
-                                    result = GRID_DRAW_RESULT_LOSE;
-                                } else if(blocks_remaining == target_block_count) {
-                                    result = GRID_DRAW_RESULT_WIN;
+                    x += GRID_CENTER_X;
+                    y += grid_y_pos;
+                    for(i = 0; i < BULLET_MAX; ++i) {
+                        if(bullets_x[i]) {
+                            if(((char)(bullets_x[i] - x - GRID_SQUARE_OFFSET)) <= GRID_SQUARE_SIZE) {
+                                if(((char)(bullets_y[i] - y - GRID_SQUARE_OFFSET)) <= GRID_SQUARE_SIZE) {
+                                    bullets_x[i] = 0;
+                                    bullets_y[i] = 0;
+                                    --active_bullets;
+                                    solution_rotations_mask &= ~grid_status[grid_ind];
+                                    grid_status[grid_ind] = 0;
+                                    --blocks_remaining;
+                                    if(solution_rotations_mask == 0) {
+                                        grid_setup_explode();
+                                        result = GRID_DRAW_RESULT_LOSE;
+                                    } else if(blocks_remaining == target_block_count) {
+                                        result = GRID_DRAW_RESULT_WIN;
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                if(grid_status[grid_ind]) {
-                    x += GRID_SQUARE_OFFSET;
-                    y += GRID_SQUARE_OFFSET;
-                    DIRECT_DRAW_SPRITE(x, y, GRID_SQUARE_SIZE, GRID_SQUARE_SIZE, GRID_SPRITE_X, GRID_SPRITE_Y);
+                    if(grid_status[grid_ind]) {
+                        x += GRID_SQUARE_OFFSET;
+                        y += GRID_SQUARE_OFFSET;
+                        DIRECT_DRAW_SPRITE(x, y, GRID_SQUARE_SIZE, GRID_SQUARE_SIZE, GRID_SPRITE_X, GRID_SPRITE_Y);
+                    }
                 }
+                ++grid_ind;
             }
-            ++grid_ind;
         }
     }
+    
 
-    for(i = 0; i < BULLET_MAX; ++i) {
-        if(bullets_x[i]) {
-            DIRECT_DRAW_SPRITE(bullets_x[i] - 2, bullets_y[i] - 2, 4, 4, 39, 95);
+    if(grid_render_mode == GRID_MODE_GAME) {
+        for(i = 0; i < BULLET_MAX; ++i) {
+            if(bullets_x[i]) {
+                DIRECT_DRAW_SPRITE(bullets_x[i] - 2, bullets_y[i] - 2, 4, 4, 39, 95);
+            }
         }
     }
 

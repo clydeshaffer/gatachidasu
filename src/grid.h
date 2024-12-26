@@ -19,6 +19,7 @@ extern char grid_y_pos;
 
 void grid_init(SpriteSlot s);
 
+#define GRID_RESET_PUZZLE ((char*)0xFFFF)
 void grid_setup_puzzle(char* shape);
 
 void grid_send_bullet(char x);

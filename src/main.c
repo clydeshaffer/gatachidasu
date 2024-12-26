@@ -24,6 +24,8 @@ char win_state;
 
 int puzzle_offset = 0;
 
+char global_tick = 0;
+
 int main () {
 
     init_graphics();
@@ -113,7 +115,7 @@ int main () {
         queue_draw_sprite(player_x - 8, 103, 16, 16, 33, 103, bgImg);
 
         if(win_state == GRID_DRAW_RESULT_WIN) {
-            queue_draw_box(65,33, 16, 16, 251);
+            //queue_draw_box(65,33, 16, 16, 251);
             win_state = 0;
             puzzle_offset += GRID_FULL_COUNT;
             if(puzzle_offset >= ASSET__bg__puzzles_bin_size) {
@@ -125,7 +127,8 @@ int main () {
             grid_setup_puzzle(&ASSET__bg__puzzles_bin_ptr[puzzle_offset]);
             pop_rom_bank();
         } else if(win_state == GRID_DRAW_RESULT_LOSE) {
-            queue_draw_box(65,33, 16, 16, 90);
+            //queue_draw_box(65,33, 16, 16, 90);
+            win_state = 0;
         }
 
 
@@ -134,6 +137,7 @@ int main () {
         await_draw_queue();
         await_vsync(1);
         flip_pages();
+        ++global_tick;
         update_inputs();
         tick_music();
     }
