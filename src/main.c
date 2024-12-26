@@ -61,7 +61,7 @@ int main () {
     player_frame_end = PLAYER_TAG_IDLE_END;
     player_frame_end_next = player_frame_end;
 
-    play_song(ASSET__music__katachidasu_mid, REPEAT_LOOP);
+    play_song(ASSET__music__normal_mid, REPEAT_LOOP);
 
     while (1) {                                     //  Run forever
         //queue_clear_screen(3);
@@ -135,12 +135,15 @@ int main () {
 
         if(target_x == player_x) {
             if(player1_new_buttons & INPUT_MASK_C) {
-                grid_send_bullet(player_x);
-                player_frame_start = PLAYER_TAG_IDLE_START;
-                player_frame_end_next = PLAYER_TAG_IDLE_END;
-                player_frame_end = PLAYER_TAG_BULLET_END;
-                player_frame = PLAYER_TAG_BULLET_START+2;
-                player_subframe = 0;
+                if(~win_state & GRID_DRAW_RESULT_PRE_WIN) {
+                    play_sound_effect(ASSET__music__shoot_sfx_ID, 3);
+                    grid_send_bullet(player_x);
+                    player_frame_start = PLAYER_TAG_IDLE_START;
+                    player_frame_end_next = PLAYER_TAG_IDLE_END;
+                    player_frame_end = PLAYER_TAG_BULLET_END;
+                    player_frame = PLAYER_TAG_BULLET_START+2;
+                    player_subframe = 0;
+                }
             }
         }
         if(target_x < player_x) player_x -= 2;
@@ -185,6 +188,7 @@ int main () {
         }
         
         if(win_state & GRID_DRAW_RESULT_PRE_WIN) {
+            player_frame = PLAYER_TAG_IDLE_START;
             if((~prev_win_state) & GRID_DRAW_RESULT_PRE_WIN) {
                 play_sound_effect(ASSET__music__correct_sfx_ID, 2);
             }
