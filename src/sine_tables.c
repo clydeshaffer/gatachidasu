@@ -1,4 +1,4 @@
-const char sineRadius8[128] = {
+const signed char sineRadius8[128] = {
 0, 0, 1, 1, 2, 2, 2, 3,
 3, 3, 4, 4, 4, 5, 5, 5,
 6, 6, 6, 6, 7, 7, 7, 7,
@@ -16,7 +16,7 @@ const char sineRadius8[128] = {
 -6, -5, -5, -5, -4, -4, -4, -3,
 -3, -3, -2, -2, -2, -1, -1, 0};
 
-const char sineRadius11[128] = {
+const signed char sineRadius11[128] = {
 0, 1, 1, 2, 2, 3, 3, 4,
 4, 5, 5, 6, 6, 7, 7, 7,
 8, 8, 9, 9, 9, 9, 10, 10,
@@ -34,7 +34,7 @@ const char sineRadius11[128] = {
 -8, -7, -7, -7, -6, -6, -5, -5,
 -4, -4, -3, -3, -2, -2, -1, -1};
 
-const char sineRadius16[128] = {
+const signed char sineRadius16[128] = {
 0, 1, 2, 2, 3, 4, 5, 5,
 6, 7, 8, 8, 9, 10, 10, 11,
 11, 12, 12, 13, 13, 14, 14, 14,
@@ -52,7 +52,7 @@ const char sineRadius16[128] = {
 -11, -11, -10, -10, -9, -8, -8, -7,
 -6, -5, -5, -4, -3, -2, -2, -1};
 
-const char sineRadius18[128] = {
+const signed char sineRadius18[128] = {
 0, 1, 2, 3, 4, 4, 5, 6,
 7, 8, 8, 9, 10, 11, 11, 12,
 13, 13, 14, 14, 15, 15, 16, 16,
@@ -70,7 +70,7 @@ const char sineRadius18[128] = {
 -13, -12, -11, -11, -10, -9, -8, -8,
 -7, -6, -5, -4, -4, -3, -2, -1};
 
-const char sineRadius23[128] = {
+const signed char sineRadius23[128] = {
 0, 1, 2, 3, 4, 6, 7, 8,
 9, 10, 11, 12, 13, 14, 15, 15,
 16, 17, 18, 18, 19, 20, 20, 21,

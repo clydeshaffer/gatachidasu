@@ -28,6 +28,7 @@ const char grid_radius[GRID_FULL_COUNT] = {
 #define GRID_MODE_GAME 0
 #define GRID_MODE_EXPLODE 1
 #define GRID_MODE_DISPLAY 2
+#define DISPLAY_MODE_TIME 90
 
 char grid_render_mode;
 char grid_status[GRID_FULL_COUNT];
@@ -249,7 +250,6 @@ char grid_draw() {
                                             result = GRID_DRAW_RESULT_LOSE;
                                         } else if(blocks_remaining == target_block_count) {
                                             grid_render_mode = GRID_MODE_DISPLAY;
-                                            display_mode_timeout = 60;
                                         }
                                     }
                                 }
@@ -275,13 +275,17 @@ char grid_draw() {
             }
         }
     } else if(grid_render_mode == GRID_MODE_DISPLAY) {
-        if((grid_rotation & 0x7E) != grid_get_display_rotation()) {
-            grid_rotation += 2;
-        } else {
-            grid_rotation = grid_get_display_rotation();
+        if(display_mode_timeout) {
+            grid_rotation = grid_get_display_rotation() + (sineRadius8[(((DISPLAY_MODE_TIME-1) - display_mode_timeout) << 2) & 0x7F] >> 1);
             --display_mode_timeout;
             if(display_mode_timeout == 0) {
                 result = GRID_DRAW_RESULT_WIN;
+            }
+        } else {
+            if(((grid_rotation & 0x7E) == grid_get_display_rotation())) {
+                display_mode_timeout = DISPLAY_MODE_TIME;
+            } else {
+                grid_rotation += 2;
             }
         }
     }
