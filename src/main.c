@@ -27,13 +27,13 @@ char player_vy;
 char target_x;
 
 char win_state;
+char prev_win_state;
 
 int puzzle_offset = 0;
 
 char global_tick = 0;
 
 int main () {
-
     init_graphics();
     bgImg = allocate_sprite(&ASSET__bg__scene_bmp_load_list);
 
@@ -43,6 +43,7 @@ int main () {
     grid_setup_puzzle(&ASSET__bg__puzzles_bin_ptr);
     pop_rom_bank();
     win_state = 0;
+    prev_win_state = 0;
 
     player_x = GRID_CENTER_X;
     player_y = 0;
@@ -140,6 +141,9 @@ int main () {
         }
         
         if(win_state & GRID_DRAW_RESULT_PRE_WIN) {
+            if((~prev_win_state) & GRID_DRAW_RESULT_PRE_WIN) {
+                play_sound_effect(ASSET__music__correct_sfx_ID, 2);
+            }
             if(player_y >= 0) {
                 player_vy = -10;
                 player_y = 0;
@@ -159,6 +163,7 @@ int main () {
         ++global_tick;
         update_inputs();
         tick_music();
+        prev_win_state = win_state;
     }
  
   return (0);                                     //  We should never get here!
