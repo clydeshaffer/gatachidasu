@@ -17,7 +17,13 @@ SpriteSlot bgImg;
 char rotation_direction = 0;
 char rotation_timer = 0;
 
+#define PLAYER_NORMAL_Y 103
+#define PLAYER_SPRITE_X 33
+#define PLAYER_SPRITE_Y 103
+
 char player_x;
+signed char player_y;
+char player_vy;
 char target_x;
 
 char win_state;
@@ -39,6 +45,8 @@ int main () {
     win_state = 0;
 
     player_x = GRID_CENTER_X;
+    player_y = 0;
+    player_vy = 0;
     target_x = GRID_CENTER_X;
 
     play_song(ASSET__music__katachidasu_mid, REPEAT_LOOP);
@@ -112,9 +120,9 @@ int main () {
             win_state = 0;
         }
 
-        queue_draw_sprite(player_x - 8, 103, 16, 16, 33, 103, bgImg);
+        queue_draw_sprite(player_x - 8, PLAYER_NORMAL_Y + (player_y >> 2), 16, 16, PLAYER_SPRITE_X, PLAYER_SPRITE_Y, bgImg);
 
-        if(win_state == GRID_DRAW_RESULT_WIN) {
+        if(win_state & GRID_DRAW_RESULT_WIN) {
             //queue_draw_box(65,33, 16, 16, 251);
             win_state = 0;
             puzzle_offset += GRID_FULL_COUNT;
@@ -126,11 +134,22 @@ int main () {
             change_rom_bank(ASSET__bg__puzzles_bin_bank);
             grid_setup_puzzle(&ASSET__bg__puzzles_bin_ptr[puzzle_offset]);
             pop_rom_bank();
-        } else if(win_state == GRID_DRAW_RESULT_LOSE) {
+        } else if(win_state & GRID_DRAW_RESULT_LOSE) {
             //queue_draw_box(65,33, 16, 16, 90);
             win_state = 0;
         }
-
+        
+        if(win_state & GRID_DRAW_RESULT_PRE_WIN) {
+            if(player_y >= 0) {
+                player_vy = -10;
+                player_y = 0;
+            }
+            player_y += player_vy;
+            player_vy += 1;
+        } else {
+            player_y = 0;
+            player_vy = 0;
+        }
 
         queue_clear_border(0);
 

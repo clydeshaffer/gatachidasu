@@ -13,6 +13,7 @@
 #define GRID_DRAW_RESULT_NONE 0
 #define GRID_DRAW_RESULT_LOSE 1
 #define GRID_DRAW_RESULT_WIN 2
+#define GRID_DRAW_RESULT_PRE_WIN 4
 
 extern char grid_rotation;
 extern char grid_y_pos;

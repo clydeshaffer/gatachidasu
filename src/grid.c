@@ -250,6 +250,7 @@ char grid_draw() {
                                             result = GRID_DRAW_RESULT_LOSE;
                                         } else if(blocks_remaining == target_block_count) {
                                             grid_render_mode = GRID_MODE_DISPLAY;
+                                            result = GRID_DRAW_RESULT_PRE_WIN;
                                         }
                                     }
                                 }
