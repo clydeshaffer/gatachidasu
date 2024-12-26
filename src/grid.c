@@ -46,8 +46,8 @@ extern char global_tick;
 
 //These coordinates are only used in explode mode
 //Otherwise blocks are drawn with polar coords
-signed char grid_explode_x[GRID_FULL_COUNT];
-signed char grid_explode_y[GRID_FULL_COUNT];
+char grid_explode_x[GRID_FULL_COUNT];
+char grid_explode_y[GRID_FULL_COUNT];
 signed char grid_explode_vx[GRID_FULL_COUNT];
 signed char grid_explode_vy[GRID_FULL_COUNT];
 
@@ -78,10 +78,12 @@ void grid_setup_explode() {
             setSineMode(grid_radius[i]);
             grid_explode_y[i] = getSine(grid_angles[i] + grid_rotation);
             grid_explode_x[i] = getSine(grid_angles[i] + grid_rotation_cosine);
-            grid_explode_vy[i] = (grid_explode_y[i] >> 3) + 3;
-            grid_explode_vx[i] = grid_explode_x[i] >> 3;
+            grid_explode_vy[i] = (((signed char) grid_explode_y[i]) >> 3) - 2;
+            grid_explode_vx[i] = (((signed char) grid_explode_x[i]) >> 3) + (i & 7) - 4;
             grid_explode_y[i] += GRID_SQUARE_OFFSET + grid_y_pos;
             grid_explode_x[i] += GRID_SQUARE_OFFSET + GRID_CENTER_X;
+            grid_explode_y[i] <<= 1;
+            grid_explode_x[i] <<= 1;
         }
     }
     grid_render_mode = GRID_MODE_EXPLODE;
@@ -174,16 +176,16 @@ char grid_draw() {
         for(r = 0; r < GRID_SIZE; ++r) {
             for(c = 0; c < GRID_SIZE; ++c) {
                 if(grid_status[grid_ind]) {
-                    DIRECT_DRAW_SPRITE(grid_explode_x[grid_ind], grid_explode_y[grid_ind], GRID_SQUARE_SIZE, GRID_SQUARE_SIZE, GRID_SPRITE_X, GRID_SPRITE_Y);
+                    DIRECT_DRAW_SPRITE(grid_explode_x[grid_ind] >> 1, grid_explode_y[grid_ind] >> 1, GRID_SQUARE_SIZE, GRID_SQUARE_SIZE, GRID_SPRITE_X, GRID_SPRITE_Y);
                     
                     grid_explode_y[grid_ind] += grid_explode_vy[grid_ind];
-                    grid_explode_y[grid_ind] += global_tick & 1;
                     if((global_tick & 3) == 0) {
+                        ++grid_explode_vy[grid_ind];
                         grid_explode_x[grid_ind] += grid_explode_vx[grid_ind];
                     }
-                    if((grid_explode_y[grid_ind] > 100) ||
-                       (grid_explode_x[grid_ind] > 76) ||
-                       (grid_explode_x[grid_ind] < 4)
+                    if((grid_explode_y[grid_ind] > 200) ||
+                       (grid_explode_x[grid_ind] > 152) ||
+                       (grid_explode_x[grid_ind] < 8)
                     ) {
                         grid_status[grid_ind] = 0;
                         --blocks_remaining;
