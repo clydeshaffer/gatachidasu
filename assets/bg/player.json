@@ -1,0 +1,199 @@
+{ "frames": {
+   "katachitasu 0.aseprite": {
+    "frame": { "x": 36, "y": 0, "w": 18, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 8, "w": 18, "h": 17 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 1.aseprite": {
+    "frame": { "x": 54, "y": 0, "w": 18, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 8, "y": 8, "w": 18, "h": 17 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 2.aseprite": {
+    "frame": { "x": 36, "y": 0, "w": 18, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 8, "w": 18, "h": 17 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 3.aseprite": {
+    "frame": { "x": 72, "y": 0, "w": 18, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 6, "y": 8, "w": 18, "h": 17 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 4.aseprite": {
+    "frame": { "x": 36, "y": 0, "w": 18, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 8, "w": 18, "h": 17 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 5.aseprite": {
+    "frame": { "x": 90, "y": 17, "w": 18, "h": 16 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 9, "w": 18, "h": 16 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 6.aseprite": {
+    "frame": { "x": 90, "y": 0, "w": 18, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 8, "w": 18, "h": 17 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 7.aseprite": {
+    "frame": { "x": 108, "y": 17, "w": 18, "h": 16 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 9, "w": 18, "h": 16 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 8.aseprite": {
+    "frame": { "x": 108, "y": 0, "w": 18, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 8, "w": 18, "h": 17 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 9.aseprite": {
+    "frame": { "x": 36, "y": 0, "w": 18, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 8, "w": 18, "h": 17 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 10.aseprite": {
+    "frame": { "x": 36, "y": 17, "w": 18, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 8, "w": 18, "h": 17 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 11.aseprite": {
+    "frame": { "x": 36, "y": 0, "w": 18, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 8, "w": 18, "h": 17 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 12.aseprite": {
+    "frame": { "x": 54, "y": 17, "w": 18, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 8, "w": 18, "h": 17 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 13.aseprite": {
+    "frame": { "x": 0, "y": 0, "w": 18, "h": 18 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 7, "w": 18, "h": 18 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 14.aseprite": {
+    "frame": { "x": 0, "y": 0, "w": 18, "h": 18 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 7, "w": 18, "h": 18 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 15.aseprite": {
+    "frame": { "x": 72, "y": 17, "w": 18, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 8, "w": 18, "h": 17 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 16.aseprite": {
+    "frame": { "x": 18, "y": 0, "w": 18, "h": 18 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 7, "w": 18, "h": 18 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 17.aseprite": {
+    "frame": { "x": 36, "y": 0, "w": 18, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 8, "w": 18, "h": 17 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 18.aseprite": {
+    "frame": { "x": 36, "y": 0, "w": 18, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 8, "w": 18, "h": 17 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 19.aseprite": {
+    "frame": { "x": 72, "y": 17, "w": 18, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 8, "w": 18, "h": 17 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 20.aseprite": {
+    "frame": { "x": 0, "y": 0, "w": 18, "h": 18 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 7, "w": 18, "h": 18 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   },
+   "katachitasu 21.aseprite": {
+    "frame": { "x": 36, "y": 0, "w": 18, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 7, "y": 8, "w": 18, "h": 17 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 100
+   }
+ },
+ "meta": {
+  "app": "https://www.aseprite.org/",
+  "version": "1.3.11-beta2-x64",
+  "image": "player.bmp",
+  "format": "I8",
+  "size": { "w": 128, "h": 34 },
+  "scale": "1",
+  "frameTags": [
+   { "name": "Idle", "from": 0, "to": 3, "direction": "forward", "color": "#000000ff" },
+   { "name": "Bullet", "from": 4, "to": 8, "direction": "forward", "color": "#000000ff" },
+   { "name": "Rotate", "from": 9, "to": 12, "direction": "forward", "color": "#000000ff" },
+   { "name": "Step Right", "from": 13, "to": 17, "direction": "forward", "color": "#000000ff" },
+   { "name": "Slide Right", "from": 18, "to": 21, "direction": "forward", "color": "#000000ff" }
+  ],
+  "layers": [
+   { "name": "Layer 1", "opacity": 255, "blendMode": "normal" }
+  ],
+  "slices": [
+  ]
+ }
+}
