@@ -35,6 +35,7 @@ char grid_target[GRID_FULL_COUNT];
 char solution_rotations_mask;
 char blocks_remaining;
 char target_block_count;
+char display_mode_timeout;
 
 #define BULLET_MAX 5
 char next_bullet;
@@ -50,6 +51,21 @@ char grid_explode_x[GRID_FULL_COUNT];
 char grid_explode_y[GRID_FULL_COUNT];
 signed char grid_explode_vx[GRID_FULL_COUNT];
 signed char grid_explode_vy[GRID_FULL_COUNT];
+
+char grid_get_display_rotation() {
+    if((1 << (grid_rotation >> 5)) & solution_rotations_mask) return (grid_rotation & 96);
+
+    if(solution_rotations_mask & 1) {
+        return 0;
+    }
+    if(solution_rotations_mask & 2) {
+        return 32;
+    }
+    if(solution_rotations_mask & 4) {
+        return 64;
+    }
+    return 96;
+}
 
 void grid_init(SpriteSlot s) {
     static char i;
@@ -216,26 +232,30 @@ char grid_draw() {
 
                     x += GRID_CENTER_X;
                     y += grid_y_pos;
-                    for(i = 0; i < BULLET_MAX; ++i) {
-                        if(bullets_x[i]) {
-                            if(((char)(bullets_x[i] - x - GRID_SQUARE_OFFSET)) <= GRID_SQUARE_SIZE) {
-                                if(((char)(bullets_y[i] - y - GRID_SQUARE_OFFSET)) <= GRID_SQUARE_SIZE) {
-                                    bullets_x[i] = 0;
-                                    bullets_y[i] = 0;
-                                    --active_bullets;
-                                    solution_rotations_mask &= ~grid_status[grid_ind];
-                                    grid_status[grid_ind] = 0;
-                                    --blocks_remaining;
-                                    if(solution_rotations_mask == 0) {
-                                        grid_setup_explode();
-                                        result = GRID_DRAW_RESULT_LOSE;
-                                    } else if(blocks_remaining == target_block_count) {
-                                        result = GRID_DRAW_RESULT_WIN;
+                    
+                    if(grid_render_mode == GRID_MODE_GAME) {
+                        for(i = 0; i < BULLET_MAX; ++i) {
+                            if(bullets_x[i]) {
+                                if(((char)(bullets_x[i] - x - GRID_SQUARE_OFFSET)) <= GRID_SQUARE_SIZE) {
+                                    if(((char)(bullets_y[i] - y - GRID_SQUARE_OFFSET)) <= GRID_SQUARE_SIZE) {
+                                        bullets_x[i] = 0;
+                                        bullets_y[i] = 0;
+                                        --active_bullets;
+                                        solution_rotations_mask &= ~grid_status[grid_ind];
+                                        grid_status[grid_ind] = 0;
+                                        --blocks_remaining;
+                                        if(solution_rotations_mask == 0) {
+                                            grid_setup_explode();
+                                            result = GRID_DRAW_RESULT_LOSE;
+                                        } else if(blocks_remaining == target_block_count) {
+                                            grid_render_mode = GRID_MODE_DISPLAY;
+                                            display_mode_timeout = 60;
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
+                    } 
 
                     if(grid_status[grid_ind]) {
                         x += GRID_SQUARE_OFFSET;
@@ -247,12 +267,21 @@ char grid_draw() {
             }
         }
     }
-    
-
+  
     if(grid_render_mode == GRID_MODE_GAME) {
         for(i = 0; i < BULLET_MAX; ++i) {
             if(bullets_x[i]) {
                 DIRECT_DRAW_SPRITE(bullets_x[i] - 2, bullets_y[i] - 2, 4, 4, 39, 95);
+            }
+        }
+    } else if(grid_render_mode == GRID_MODE_DISPLAY) {
+        if((grid_rotation & 0x7E) != grid_get_display_rotation()) {
+            grid_rotation += 2;
+        } else {
+            grid_rotation = grid_get_display_rotation();
+            --display_mode_timeout;
+            if(display_mode_timeout == 0) {
+                result = GRID_DRAW_RESULT_WIN;
             }
         }
     }
