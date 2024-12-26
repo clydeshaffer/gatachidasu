@@ -131,6 +131,10 @@ $(ODIR)/gt/crt0.o: src/gt/crt0.s $(ODIR)/assets/audio_fw.bin.deflate
 	@mkdir -p $(@D)
 	$(AS) $(AFLAGS) -o $@ $<
 
+assets/bg/puzzles.bin: art/puzzles.bmp
+	@mkdir -p $(@D)
+	node ./scripts/converters/bmp_header_remover.js $< $@
+
 scripts/%/node_modules:
 	cd scripts/$* ;\
 	npm install
@@ -162,7 +166,7 @@ scripts/converters/node_modules: scripts/converters/package.json
 	npm install
 
 
-$(ODIR)/%.cfg $(ODIR)/%.inc src/gen/assets/%.s.asset: project.json scripts/build_setup/*.js scripts/build_setup/node_modules $(BMPOBJS) $(JSONOBJS) $(AUDIO_FW) $(MIDOBJS) $(BINOBJS) $(SFXOBJS)
+$(ODIR)/%.cfg $(ODIR)/%.inc src/gen/assets/%.s.asset: project.json scripts/build_setup/*.js scripts/build_setup/node_modules $(BMPOBJS) $(JSONOBJS) $(AUDIO_FW) $(MIDOBJS) $(BINOBJS) $(SFXOBJS) assets/bg/puzzles.bin
 	mkdir -p $(ODIR)
 	find assets -type f -name '*:Zone.Identifier' -delete
 	node ./scripts/build_setup/build_setup.js

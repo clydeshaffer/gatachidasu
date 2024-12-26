@@ -193,6 +193,8 @@ char grid_draw() {
         for(c = 0; c < GRID_SIZE; ++c) {
             if(grid_target[grid_ind] & 1) {
                 DIRECT_DRAW_SPRITE(x, y, 7, 7, 87, 38);
+            } else {
+                DIRECT_DRAW_SPRITE(x, y, 7, 7, 101, 38);
             }
             x += 7;
             ++grid_ind;
