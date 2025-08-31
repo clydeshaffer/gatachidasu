@@ -182,19 +182,19 @@ int main () {
             if(target_x == player_x) {
                 if(player1_new_buttons & INPUT_MASK_C) {
                     if(~win_state & GRID_DRAW_RESULT_PRE_WIN) {
-                        play_sound_effect(ASSET__music__shoot_sfx_ID, 3);
-                        grid_send_bullet(player_x);
-                        player_frame_start = PLAYER_TAG_IDLE_START;
-                        player_frame_end_next = PLAYER_TAG_IDLE_END;
-                        player_frame_end = PLAYER_TAG_BULLET_END;
-                        player_frame = PLAYER_TAG_BULLET_START+2;
-                        player_subframe = 0;
+                        if(grid_send_bullet(player_x)) {
+                            play_sound_effect(ASSET__music__shoot_sfx_ID, 3);
+                            player_frame_start = PLAYER_TAG_IDLE_START;
+                            player_frame_end_next = PLAYER_TAG_IDLE_END;
+                            player_frame_end = PLAYER_TAG_BULLET_END;
+                            player_frame = PLAYER_TAG_BULLET_START+2;
+                            player_subframe = 0;
+                        }
                     }
                 }
             }
             if(target_x < player_x) player_x -= 2;
             if(target_x > player_x) player_x += 2;
-
             win_state |= grid_draw();
 
             if(player1_new_buttons & INPUT_MASK_START) {
@@ -264,7 +264,9 @@ int main () {
             ++global_tick;
             update_inputs();
             tick_music();
-            tick_game_timer();
+            if(~win_state & GRID_DRAW_RESULT_PRE_WIN) {
+                tick_game_timer();
+            }
             prev_win_state = win_state;
         }
 

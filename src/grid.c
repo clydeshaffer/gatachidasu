@@ -161,12 +161,13 @@ void grid_setup_puzzle(char* shape) {
     }
 }
 
-void grid_send_bullet(char x) {
-    if(active_bullets == BULLET_MAX) return;
+char grid_send_bullet(char x) {
+    if(active_bullets == BULLET_MAX) return 0;
     ++active_bullets;
     bullets_x[next_bullet] = x;
     bullets_y[next_bullet] = 104;
     if(++next_bullet == BULLET_MAX) next_bullet = 0;
+    return 1;
 }
 
 char grid_draw() {
@@ -176,9 +177,9 @@ char grid_draw() {
 
     result = GRID_DRAW_RESULT_NONE;
 
-    direct_prepare_sprite_mode(grid_sprite);
-    
     grid_rotation_cosine = grid_rotation + 32;
+
+    grid_ind = 0;
 
     for(i = 0; i < BULLET_MAX; ++i) {
         if(bullets_x[i]) {
@@ -189,6 +190,58 @@ char grid_draw() {
             }
         }
     }
+
+    if(grid_render_mode != GRID_MODE_EXPLODE) {
+        for(r = 0; r < GRID_SIZE; ++r) {
+            for(c = 0; c < GRID_SIZE; ++c) {
+                if(grid_status[grid_ind]) {
+                    
+                    if(grid_radius[grid_ind] & 0x80) {
+                        x = 0;
+                        y = 0;
+                    } else {
+                        setSineMode(grid_radius[grid_ind]);
+                        y = getSine(grid_angles[grid_ind] + grid_rotation);
+                        x = getSine(grid_angles[grid_ind] + grid_rotation_cosine);
+                    }
+
+                    x += GRID_CENTER_X;
+                    y += grid_y_pos;
+                    
+                    if(grid_render_mode == GRID_MODE_GAME) {
+                        for(i = 0; i < BULLET_MAX; ++i) {
+                            if(bullets_x[i]) {
+                                if(((char)(bullets_x[i] - x - GRID_SQUARE_OFFSET)) <= GRID_SQUARE_SIZE) {
+                                    if(((char)(bullets_y[i] - y - GRID_SQUARE_OFFSET)) <= GRID_SQUARE_SIZE) {
+                                        bullets_x[i] = 0;
+                                        bullets_y[i] = 0;
+                                        --active_bullets;
+                                        solution_rotations_mask &= ~grid_status[grid_ind];
+                                        grid_status[grid_ind] = 0;
+                                        play_sound_effect(ASSET__music__hit_sfx_ID, 3);
+                                        --blocks_remaining;
+                                        if(solution_rotations_mask == 0) {
+                                            grid_setup_explode();
+                                            play_sound_effect(ASSET__music__break_sfx_ID, 3);
+                                            result = GRID_DRAW_RESULT_LOSE;
+                                        } else if(blocks_remaining == target_block_count) {
+                                            grid_render_mode = GRID_MODE_DISPLAY;
+                                            result = GRID_DRAW_RESULT_PRE_WIN;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                ++grid_ind;
+            }
+        }
+    }
+
+    direct_prepare_sprite_mode(grid_sprite);
+    
+    grid_rotation_cosine = grid_rotation + 32;
 
     grid_ind = 0;
 
@@ -237,36 +290,10 @@ char grid_draw() {
                     x += GRID_CENTER_X;
                     y += grid_y_pos;
                     
-                    if(grid_render_mode == GRID_MODE_GAME) {
-                        for(i = 0; i < BULLET_MAX; ++i) {
-                            if(bullets_x[i]) {
-                                if(((char)(bullets_x[i] - x - GRID_SQUARE_OFFSET)) <= GRID_SQUARE_SIZE) {
-                                    if(((char)(bullets_y[i] - y - GRID_SQUARE_OFFSET)) <= GRID_SQUARE_SIZE) {
-                                        bullets_x[i] = 0;
-                                        bullets_y[i] = 0;
-                                        --active_bullets;
-                                        solution_rotations_mask &= ~grid_status[grid_ind];
-                                        grid_status[grid_ind] = 0;
-                                        play_sound_effect(ASSET__music__hit_sfx_ID, 3);
-                                        --blocks_remaining;
-                                        if(solution_rotations_mask == 0) {
-                                            grid_setup_explode();
-                                            play_sound_effect(ASSET__music__break_sfx_ID, 3);
-                                            result = GRID_DRAW_RESULT_LOSE;
-                                        } else if(blocks_remaining == target_block_count) {
-                                            grid_render_mode = GRID_MODE_DISPLAY;
-                                            result = GRID_DRAW_RESULT_PRE_WIN;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } 
-
                     if(grid_status[grid_ind]) {
                         x += GRID_SQUARE_OFFSET;
                         y += GRID_SQUARE_OFFSET;
-                        DIRECT_DRAW_SPRITE(x, y, GRID_SQUARE_SIZE, GRID_SQUARE_SIZE, GRID_SPRITE_X, GRID_SPRITE_Y);
+                        DIRECT_DRAW_SPRITE(x, y, GRID_SQUARE_SIZE, GRID_SQUARE_SIZE, ((grid_ind == 12) ? GRID_SPRITE_CENTER_X : GRID_SPRITE_X), GRID_SPRITE_Y);
                     }
                 }
                 ++grid_ind;
@@ -302,7 +329,12 @@ char grid_draw() {
         x = 87;
         for(c = 0; c < GRID_SIZE; ++c) {
             if(grid_target[grid_ind] & 1) {
-                DIRECT_DRAW_SPRITE(x, y, 7, 7, 87, 38);
+                if(grid_ind == 12) {
+                    DIRECT_DRAW_SPRITE(x, y, 7, 7, 101, 52);
+                } else {
+                    DIRECT_DRAW_SPRITE(x, y, 7, 7, 87, 38);
+                }
+                
             } else {
                 DIRECT_DRAW_SPRITE(x, y, 7, 7, 101, 38);
             }

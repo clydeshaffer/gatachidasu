@@ -3,8 +3,9 @@
 #define GRID_CENTER_X 40
 #define GRID_CENTER_Y_START 45
 
-#define GRID_SPRITE_X 21
-#define GRID_SPRITE_Y 26
+#define GRID_SPRITE_X 29
+#define GRID_SPRITE_Y 42
+#define GRID_SPRITE_CENTER_X 37
 #define GRID_SIZE 5
 #define GRID_FULL_COUNT 25
 #define GRID_SQUARE_OFFSET -4
@@ -23,6 +24,6 @@ void grid_init(SpriteSlot s);
 #define GRID_RESET_PUZZLE ((char*)0xFFFF)
 void grid_setup_puzzle(char* shape);
 
-void grid_send_bullet(char x);
+char grid_send_bullet(char x);
 
 char grid_draw();
