@@ -59,7 +59,7 @@ int main () {
 
 
     while(1) {
-
+        puzzle_offset = 0;
         play_song(&ASSET__music__title_mid, REPEAT_LOOP);
         global_tick = 0;
         while(playing_game == GAME_STATE_TITLE) {
