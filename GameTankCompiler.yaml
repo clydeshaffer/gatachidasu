@@ -1,0 +1,5 @@
+compilers:
+  - description: cc65 Compiler
+    match-sources: ".*\\.c"
+    match-language: C
+    match-compiler-exe: "(.*/)?cc65(.exe)?"
