@@ -3,3 +3,4 @@ compilers:
     match-sources: ".*\\.c"
     match-language: C
     match-compiler-exe: "(.*/)?cc65(.exe)?"
+    include-dirs: ${compiler-exe-dir}/../include
