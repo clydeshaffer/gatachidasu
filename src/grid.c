@@ -109,7 +109,7 @@ void grid_setup_explode() {
     grid_render_mode = GRID_MODE_EXPLODE;
 }
 
-void grid_setup_puzzle(char* shape) {
+void grid_setup_puzzle(const unsigned char *shape) {
     static char i, r, c;
     
 
@@ -117,7 +117,7 @@ void grid_setup_puzzle(char* shape) {
         grid_status[i] = 0b10000;
     }
 
-    if(shape != 0xFFFF) {
+    if(shape != (void *)0xFFFF) {
         target_block_count = 0;
         for(i = 0; i < GRID_FULL_COUNT; ++i) {
             grid_target[i] = shape[i] ? 0xFF : 0;
