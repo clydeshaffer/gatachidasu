@@ -1,0 +1,5 @@
+CompileFlags:
+    Add:
+        - -funsigned-char
+        - -std=c90
+        - -std=gnu90
