@@ -46,6 +46,9 @@ AFLAGS = --cpu W65C02 --bin-include-dir lib --bin-include-dir $(ODIR)/assets -g
 LFLAGS = -C $(ODIR)/gametank-2M.cfg -m $(ODIR)/out.map -vm --dbgfile $(ODIR)/sourcemap.dbg
 LLIBS = lib/gametank.lib
 
+## Warnings as errors
+## CFLAGS := --warnings-as-errors
+
 C_SRCS := $(shell $(FIND) src -name "*.c")
 COBJS = $(patsubst src/%,$(ODIR)/%,$(C_SRCS:c=o))
 
