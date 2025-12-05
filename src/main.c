@@ -54,13 +54,13 @@ int main () {
     titleImg = allocate_sprite(&ASSET__bg__title_bmp_load_list);
     finishImg = allocate_sprite(&ASSET__bg__time_attack_finish_bmp_load_list);
     playerImg = allocate_sprite(&ASSET__bg__player_bmp_load_list);
-    set_sprite_frametable(playerImg, &ASSET__bg__player_json);
+    set_sprite_frametable(playerImg, (const Frame*)ASSET__bg__player_json);
     playing_game = GAME_STATE_TITLE;
 
 
     while(1) {
         puzzle_offset = 0;
-        play_song(&ASSET__music__title_mid, REPEAT_LOOP);
+        play_song(ASSET__music__title_mid, REPEAT_LOOP);
         global_tick = 0;
         while(playing_game == GAME_STATE_TITLE) {
             if(global_tick == 64) {
@@ -91,7 +91,7 @@ int main () {
         grid_init(bgImg);
         push_rom_bank();
         change_rom_bank(ASSET__bg__puzzles_bin_bank);
-        grid_setup_puzzle(&ASSET__bg__puzzles_bin_ptr);
+        grid_setup_puzzle(ASSET__bg__puzzles_bin_ptr);
         pop_rom_bank();
         win_state = 0;
         prev_win_state = 0;
@@ -271,7 +271,7 @@ int main () {
         }
 
         stop_music();
-        play_song(&ASSET__music__cocek_mid, REPEAT_LOOP);
+        play_song(ASSET__music__cocek_mid, REPEAT_LOOP);
         game_timer_pos_x = 23;
         game_timer_pos_y = 32;
 
@@ -294,5 +294,4 @@ int main () {
             tick_music();
         }
     }
-  return (0);                                     //  We should never get here!
 }

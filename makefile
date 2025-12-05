@@ -48,6 +48,9 @@ AFLAGS = --cpu W65C02 --bin-include-dir lib --bin-include-dir $(ODIR)/assets -g
 LFLAGS = -C $(ODIR)/gametank-2M.cfg -m $(ODIR)/out.map -vm --dbgfile $(ODIR)/sourcemap.dbg
 LLIBS = lib/gametank.lib
 
+## Warnings as errors
+## CFLAGS := --warnings-as-errors
+
 C_SRCS := $(shell $(FIND) src -name "*.c")
 COBJS = $(patsubst src/%,$(ODIR)/%,$(C_SRCS:c=o))
 
@@ -170,7 +173,7 @@ scripts/converters/node_modules: scripts/converters/package.json
 
 $(ODIR)/%.cfg $(ODIR)/%.inc src/gen/assets/%.s.asset: project.json scripts/build_setup/*.js scripts/build_setup/node_modules $(BMPOBJS) $(JSONOBJS) $(AUDIO_FW) $(MIDOBJS) $(BINOBJS) $(SFXOBJS) assets/bg/puzzles.bin
 	mkdir -p $(ODIR)
-	find assets -type f -name '*:Zone.Identifier' -delete
+	$(FIND) assets -type f -name '*:Zone.Identifier' -delete
 	node ./scripts/build_setup/build_setup.js
 	if [ -n "$(wildcard assets/*/*.json)" ]; then \
 		for json_file in assets/*/*.json; do \

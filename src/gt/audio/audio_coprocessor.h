@@ -11,7 +11,7 @@
 #define AMPLITUDE 0x30
 
 #define AUDIO_PARAM_INPUT_BUFFER ((volatile char *) 0x3070)
-#define WAVE_TABLE_LOCATION ((volatile unsigned int *) 0x3002)
+#define WAVE_TABLE_LOCATION ((volatile char **) 0x3002)
 
 #define NUM_FM_CHANNELS 4
 #define OPS_PER_CHANNEL 4
