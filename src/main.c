@@ -9,6 +9,7 @@
 #include "grid.h"
 #include "game_timer.h"
 #include "mode_menu.h"
+#include "tutorial.h"
 
 #include "gen/assets/music.h"
 #include "gen/assets/bg.h"
@@ -21,6 +22,7 @@ SpriteSlot titleImg;
 SpriteSlot finishImg;
 SpriteSlot bitsImg;
 SpriteSlot modeMenuImg;
+SpriteSlot tutorialImg;
 
 #define ROTATION_ANGLE 32
 char rotation_direction = 0;
@@ -61,6 +63,8 @@ int main () {
     finishImg = allocate_sprite(&ASSET__bg__time_attack_finish_bmp_load_list);
     playerImg = allocate_sprite(&ASSET__bg__player_bmp_load_list);
     set_sprite_frametable(playerImg, (const Frame*)ASSET__bg__player_json);
+    tutorialImg = allocate_sprite(&ASSET__bg__buttons_bmp_load_list);
+    set_sprite_frametable(tutorialImg, (const Frame*)ASSET__bg__buttons_json);
     game_state = GAME_STATE_TITLE;
 
 
@@ -91,6 +95,10 @@ int main () {
                     set_puzzle_counter(0, 0);
                 } else {
                     clear_game_timer();
+                }
+                if(game_mode == MODE_TUTORIAL) {
+                    init_tutorial(tutorialImg);
+                    set_puzzle_counter(0, 2);
                 }
             }
 
@@ -129,6 +137,8 @@ int main () {
             queue_draw_sprite(0, 3, 127, 127, 0, 3, bgImg);
             if(game_mode == MODE_TIME_ATTACK) {
                 queue_draw_sprite(82, 109, 28, 7, 82, 121, bgImg);
+            } else if(game_mode == MODE_TUTORIAL) {
+                check_tutorial_conditions();
             }
 
             if(rotation_timer) {
@@ -212,13 +222,17 @@ int main () {
             }
             if(target_x < player_x) player_x -= 2;
             if(target_x > player_x) player_x += 2;
+            push_rom_bank();
+            change_rom_bank(ASSET__bg__puzzles_bin_bank);
             win_state |= grid_draw();
+            pop_rom_bank();
 
             if(player1_new_buttons & INPUT_MASK_START) {
                 grid_init(bitsImg);
                 push_rom_bank();
                 change_rom_bank(ASSET__bg__puzzles_bin_bank);
                 grid_setup_puzzle(&ASSET__bg__puzzles_bin_ptr[puzzle_offset]);
+                pop_rom_bank();
                 win_state = 0;
             }
 
@@ -257,6 +271,17 @@ int main () {
                     change_rom_bank(ASSET__bg__puzzles_bin_bank);
                     grid_setup_puzzle(&ASSET__bg__puzzles_bin_ptr[puzzle_offset]);
                     pop_rom_bank();
+                } else if(game_mode == MODE_TUTORIAL) {
+                    if(decrement_puzzle_counter()) {
+                        game_state = GAME_STATE_FINISH;
+                        troll_move_mode = 0;
+                    }
+                    troll_move_mode = TROLL_MOVE_ORBIT;
+                    grid_init(bitsImg);
+                    push_rom_bank();
+                    change_rom_bank(ASSET__bg__puzzles_bin_bank);
+                    grid_setup_puzzle(&ASSET__bg__puzzles_bin_ptr[puzzle_offset]);
+                    pop_rom_bank();
                 }
                
             } else if(win_state & GRID_DRAW_RESULT_LOSE) {
@@ -282,6 +307,10 @@ int main () {
 
             render_game_timer();
 
+            if(game_mode == MODE_TUTORIAL) {
+                draw_tutorial();
+            }
+
             queue_clear_border(0);
 
             await_draw_queue();
@@ -295,7 +324,7 @@ int main () {
                     if(downtick_game_timer()) {
                         game_state = GAME_STATE_FINISH;
                     }
-                } else {
+                } else if (game_mode == MODE_MARATHON) {
                     tick_game_timer();
                 }
             }
@@ -325,6 +354,14 @@ int main () {
             } else if(game_mode == MODE_TIME_ATTACK) {
                 rect.h = 32;
                 rect.gy = 64;
+                queue_draw_sprite_rect();
+                rect.y += 32;
+                rect.gy = 32;
+                rect.b = finishImg;
+                queue_draw_sprite_rect();
+            } else if(game_mode == MODE_TUTORIAL) {
+                rect.h = 32;
+                rect.gy = 96;
                 queue_draw_sprite_rect();
                 rect.y += 32;
                 rect.gy = 32;

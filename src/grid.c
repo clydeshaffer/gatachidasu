@@ -17,7 +17,7 @@ SpriteSlot grid_sprite;
 
 char troll_move_mode = 0;
 char troll_info_mode = 0;
-
+char block_color_offset_gx;
 
 const char grid_angles[GRID_FULL_COUNT] = {
     -48, -41, -32, -23, -16,
@@ -98,6 +98,11 @@ void grid_init(SpriteSlot s) {
     blocks_remaining = GRID_FULL_COUNT;
     grid_render_mode = GRID_MODE_GAME;
     solution_rotations_mask = 0b1111;
+    if(troll_move_mode | troll_info_mode) {
+        block_color_offset_gx = 56;
+    } else {
+        block_color_offset_gx = 0;
+    }
 }
 
 void grid_setup_explode() {
@@ -182,6 +187,7 @@ char grid_send_bullet(char x) {
     return 1;
 }
 
+#pragma code-name(push, "bg")
 char grid_draw() {
     static char r, c, i, grid_rotation_cosine, grid_ind;
     static char result;
@@ -191,9 +197,12 @@ char grid_draw() {
         case TROLL_MOVE_NONE: break;
         case TROLL_MOVE_ORBIT:
             ++grid_time;
+            if(grid_time&1) {
+                ++grid_time2;
+            }
             setSineMode(0);
-            grid_x_pos = getSine(grid_time);
-            grid_y_pos = GRID_CENTER_Y_START + getSine(grid_time+32);
+            grid_x_pos = getSine(grid_time2);
+            grid_y_pos = GRID_CENTER_Y_START + getSine(grid_time2+32);
             break;
         case TROLL_MOVE_VIBRATE:
             ++grid_time;
@@ -323,7 +332,7 @@ char grid_draw() {
                     if(grid_status[grid_ind]) {
                         x += GRID_SQUARE_OFFSET;
                         y += GRID_SQUARE_OFFSET;
-                        DIRECT_DRAW_SPRITE(x, y, GRID_SQUARE_SIZE, GRID_SQUARE_SIZE, ((grid_ind == 12) ? GRID_SPRITE_CENTER_X : GRID_SPRITE_X), GRID_SPRITE_Y);
+                        DIRECT_DRAW_SPRITE(x, y, GRID_SQUARE_SIZE, GRID_SQUARE_SIZE, block_color_offset_gx + ((grid_ind == 12) ? GRID_SPRITE_CENTER_X : GRID_SPRITE_X), GRID_SPRITE_Y);
                     }
                 }
                 ++grid_ind;
@@ -360,9 +369,9 @@ char grid_draw() {
         for(c = 0; c < GRID_SIZE; ++c) {
             if(grid_target[grid_ind] & 1) {
                 if(grid_ind == 12) {
-                    DIRECT_DRAW_SPRITE(x, y, 7, 7, 24, 0);
+                    DIRECT_DRAW_SPRITE(x, y, 7, 7, 24+block_color_offset_gx, 0);
                 } else {
-                    DIRECT_DRAW_SPRITE(x, y, 7, 7, 8, 0);
+                    DIRECT_DRAW_SPRITE(x, y, 7, 7, 8+block_color_offset_gx, 0);
                 }
                 
             } else {
@@ -380,3 +389,4 @@ char grid_draw() {
     //await_drawing();
     return result;
 }
+#pragma code-name(pop)
