@@ -52,6 +52,20 @@ void clear_game_timer() {
     puzzle_counter_pos_y = 109;
 }
 
+void set_game_timer(int seconds) {
+    clear_game_timer();
+    while(seconds) {
+        --seconds;
+        current_game_time.frames = 59;
+        tick_game_timer();
+    }
+}
+
+void set_puzzle_counter(char tens, char ones) {
+    puzzle_counter_ones = ones;
+    puzzle_counter_tens = tens;
+}
+
 void tick_game_timer() {
     if(current_game_time.frames & 128) return;
     ++current_game_time.frames;
@@ -80,17 +94,58 @@ void tick_game_timer() {
     }
 }
 
+char downtick_game_timer() {
+    if(current_game_time.frames & 128) return 1;
+    --current_game_time.frames;
+    if(current_game_time.frames & 128) {
+        current_game_time.frames = 59;
+        --current_game_time.seconds_ones;
+        if(current_game_time.seconds_ones & 128) {
+            current_game_time.seconds_ones = 9;
+            --current_game_time.seconds_tens;
+            if(current_game_time.seconds_tens & 128) {
+                current_game_time.seconds_tens = 5;
+                --current_game_time.minutes_ones;
+                if(current_game_time.minutes_ones & 128) {
+                    current_game_time.minutes_ones = 9;
+                    --current_game_time.minutes_tens;
+                    if(current_game_time.minutes_tens & 128) {
+                        current_game_time.seconds_ones = 0;
+                        current_game_time.seconds_tens = 0;
+                        current_game_time.minutes_ones = 0;
+                        current_game_time.minutes_tens = 0;
+                        current_game_time.frames = 128;
+                    }
+                }
+            }
+        }
+    }
+    return 0;
+}
+
 void render_game_timer() {
     queue_draw_sprite(game_timer_pos_x, game_timer_pos_y, DIGIT_WIDTH, DIGIT_HEIGHT, number_offsets[current_game_time.minutes_tens], 0, timer_font);
     queue_draw_sprite(game_timer_pos_x+number_offsets[1], game_timer_pos_y, DIGIT_WIDTH, DIGIT_HEIGHT, number_offsets[current_game_time.minutes_ones], 0, timer_font);
     queue_draw_sprite(game_timer_pos_x+number_offsets[2]+MS_SPACING, game_timer_pos_y, DIGIT_WIDTH, DIGIT_HEIGHT, number_offsets[current_game_time.seconds_tens], 0, timer_font);
     queue_draw_sprite(game_timer_pos_x+number_offsets[3]+MS_SPACING, game_timer_pos_y, DIGIT_WIDTH, DIGIT_HEIGHT, number_offsets[current_game_time.seconds_ones], 0, timer_font);
 
-    queue_draw_sprite(puzzle_counter_pos_x, puzzle_counter_pos_y, DIGIT_WIDTH, DIGIT_HEIGHT, number_offsets[puzzle_counter_tens], 0, timer_font);
+    queue_draw_sprite(puzzle_counter_pos_x, puzzle_counter_pos_y, DIGIT_WIDTH, DIGIT_HEIGHT, number_offsets[puzzle_counter_tens&0xF], 0, timer_font);
     queue_draw_sprite(puzzle_counter_pos_x+DIGIT_WIDTH, puzzle_counter_pos_y, DIGIT_WIDTH, DIGIT_HEIGHT, number_offsets[puzzle_counter_ones], 0, timer_font);
 }
 
-char tick_puzzle_counter() {
+char increment_puzzle_counter() {
+    ++puzzle_counter_ones;
+    if(puzzle_counter_ones == 10) {
+        puzzle_counter_ones = 0;
+        ++puzzle_counter_tens;
+        if(puzzle_counter_tens == 10) {
+            puzzle_counter_tens = 0xF9;
+        }
+    }
+    return (puzzle_counter_tens == 0xF9);
+}
+
+char decrement_puzzle_counter() {
     --puzzle_counter_ones;
     if(puzzle_counter_ones == 255) {
         puzzle_counter_ones = 9;

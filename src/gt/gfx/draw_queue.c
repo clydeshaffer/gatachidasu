@@ -31,6 +31,25 @@ void queue_draw_sprite_rect() {
     asm("CLI");
 }
 
+void queue_draw_tiled_rect() {
+    if(queue_count >= QUEUE_MAX) {
+        asm("CLI");
+        await_drawing();
+    }
+
+    asm("SEI");
+    if(rect.b & SPRITE_OFFSET_X_MASK) { rect.gx |= 128; }
+    if(rect.b & SPRITE_OFFSET_Y_MASK) { rect.gy |= 128; }
+    rect.b = (rect.b & BANK_GRAM_MASK) | bankflip | CLIP_MODE_XY;
+    queue_flags_param = 0;
+    pushRect();
+
+    if(queue_pending == 0) {
+        next_draw_queue();
+    }
+    asm("CLI");
+}
+
 void queue_draw_box(unsigned char x, unsigned char y, unsigned char w, unsigned char h, unsigned char c) {
     if(x > 127) {
         return;

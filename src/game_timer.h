@@ -17,9 +17,14 @@ typedef struct game_time {
 void init_game_timer_system();
 
 void clear_game_timer();
+void set_game_timer(int seconds);
 
 void tick_game_timer();
+char downtick_game_timer();
 
-char tick_puzzle_counter();
+void set_puzzle_counter(char tens, char ones);
+
+char increment_puzzle_counter();
+char decrement_puzzle_counter();
 
 void render_game_timer();

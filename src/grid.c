@@ -7,10 +7,17 @@
 
 #include "grid.h"
 #include "sine_tables.h"
+#include "mode_menu.h"
 
 char grid_rotation;
+char grid_time, grid_time2;
+char grid_x_pos;
 char grid_y_pos;
 SpriteSlot grid_sprite;
+
+char troll_move_mode = 0;
+char troll_info_mode = 0;
+
 
 const char grid_angles[GRID_FULL_COUNT] = {
     -48, -41, -32, -23, -16,
@@ -74,6 +81,9 @@ char grid_get_display_rotation() {
 void grid_init(SpriteSlot s) {
     static char i;
     grid_rotation = 0;
+    grid_time = 0;
+    grid_time2 = 0;
+    grid_x_pos = 0;
     grid_y_pos = GRID_CENTER_Y_START;
     grid_sprite = s;
     for(i = 0; i < BULLET_MAX; ++i) {
@@ -101,7 +111,7 @@ void grid_setup_explode() {
             grid_explode_vy[i] = (((signed char) grid_explode_y[i]) >> 3) - 2;
             grid_explode_vx[i] = (((signed char) grid_explode_x[i]) >> 3) + (i & 7) - 4;
             grid_explode_y[i] += GRID_SQUARE_OFFSET + grid_y_pos;
-            grid_explode_x[i] += GRID_SQUARE_OFFSET + GRID_CENTER_X;
+            grid_explode_x[i] += GRID_SQUARE_OFFSET + GRID_CENTER_X + grid_x_pos;
             grid_explode_y[i] <<= 1;
             grid_explode_x[i] <<= 1;
         }
@@ -109,6 +119,7 @@ void grid_setup_explode() {
     grid_render_mode = GRID_MODE_EXPLODE;
 }
 
+#pragma code-name(push, "bg")
 void grid_setup_puzzle(const unsigned char *shape) {
     static char i, r, c;
     
@@ -160,6 +171,7 @@ void grid_setup_puzzle(const unsigned char *shape) {
         }
     }
 }
+#pragma code-name(pop)
 
 char grid_send_bullet(char x) {
     if(active_bullets == BULLET_MAX) return 0;
@@ -174,6 +186,24 @@ char grid_draw() {
     static char r, c, i, grid_rotation_cosine, grid_ind;
     static char result;
     static signed char x, y;
+
+    switch(troll_move_mode) {
+        case TROLL_MOVE_NONE: break;
+        case TROLL_MOVE_ORBIT:
+            ++grid_time;
+            setSineMode(0);
+            grid_x_pos = getSine(grid_time);
+            grid_y_pos = GRID_CENTER_Y_START + getSine(grid_time+32);
+            break;
+        case TROLL_MOVE_VIBRATE:
+            ++grid_time;
+            setSineMode(0);
+            grid_time2+=getSine(grid_time>>1);
+            grid_x_pos = getSine(grid_time2);
+            break;
+        default:
+            break;
+    }
 
     result = GRID_DRAW_RESULT_NONE;
 
@@ -205,7 +235,7 @@ char grid_draw() {
                         x = getSine(grid_angles[grid_ind] + grid_rotation_cosine);
                     }
 
-                    x += GRID_CENTER_X;
+                    x += GRID_CENTER_X + grid_x_pos;
                     y += grid_y_pos;
                     
                     if(grid_render_mode == GRID_MODE_GAME) {
@@ -287,7 +317,7 @@ char grid_draw() {
                         x = getSine(grid_angles[grid_ind] + grid_rotation_cosine);
                     }
 
-                    x += GRID_CENTER_X;
+                    x += GRID_CENTER_X + grid_x_pos;
                     y += grid_y_pos;
                     
                     if(grid_status[grid_ind]) {
@@ -304,7 +334,7 @@ char grid_draw() {
     if(grid_render_mode == GRID_MODE_GAME) {
         for(i = 0; i < BULLET_MAX; ++i) {
             if(bullets_x[i]) {
-                DIRECT_DRAW_SPRITE(bullets_x[i] - 2, bullets_y[i] - 2, 4, 4, 39, 95);
+                DIRECT_DRAW_SPRITE(bullets_x[i] - 2, bullets_y[i] - 2, 4, 4, BULLET_GX, BULLET_GY);
             }
         }
     } else if(grid_render_mode == GRID_MODE_DISPLAY) {
@@ -330,13 +360,17 @@ char grid_draw() {
         for(c = 0; c < GRID_SIZE; ++c) {
             if(grid_target[grid_ind] & 1) {
                 if(grid_ind == 12) {
-                    DIRECT_DRAW_SPRITE(x, y, 7, 7, 101, 52);
+                    DIRECT_DRAW_SPRITE(x, y, 7, 7, 24, 0);
                 } else {
-                    DIRECT_DRAW_SPRITE(x, y, 7, 7, 87, 38);
+                    DIRECT_DRAW_SPRITE(x, y, 7, 7, 8, 0);
                 }
                 
             } else {
-                DIRECT_DRAW_SPRITE(x, y, 7, 7, 101, 38);
+                if(grid_ind == 12) {
+                    DIRECT_DRAW_SPRITE(x, y, 7, 7, 48, 0);
+                } else {
+                    DIRECT_DRAW_SPRITE(x, y, 7, 7, 40, 0);
+                }
             }
             x += 7;
             ++grid_ind;
