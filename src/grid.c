@@ -290,7 +290,7 @@ char grid_draw() {
                     ++grid_y_pos;
                     if(grid_y_pos > 78) {
                         grid_setup_explode();
-                        play_sound_effect(ASSET__music__break_sfx_ID, 3);
+                        play_sound_effect(ASSET__music__break_sfx_ID, 2);
                         result = GRID_DRAW_RESULT_LOSE;
                     }
                 }
@@ -385,11 +385,11 @@ char grid_draw() {
                                             if(grid_status[grid_ind&8]) solution_blocks_destroyed[3]++;
                                             old_grid_status[grid_ind] = grid_status[grid_ind];
                                             grid_status[grid_ind] = 0;
-                                            play_sound_effect(ASSET__music__hit_sfx_ID, 3);
+                                            play_sound_effect(ASSET__music__hit_sfx_ID, 2);
                                             --blocks_remaining;
                                             if(solution_rotations_mask == 0) {
                                                 grid_setup_explode();
-                                                play_sound_effect(ASSET__music__break_sfx_ID, 3);
+                                                play_sound_effect(ASSET__music__break_sfx_ID, 2);
                                                 result = GRID_DRAW_RESULT_LOSE;
                                             } else if(blocks_remaining == target_block_count) {
                                                 grid_render_mode = GRID_MODE_DISPLAY;

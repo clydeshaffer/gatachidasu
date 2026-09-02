@@ -85,7 +85,7 @@ void check_tutorial_conditions() {
     }
     if(did_advance) {
         ++tutorial_step;
-        play_sound_effect(ASSET__music__correct_sfx_ID, 1);
+        play_sound_effect(ASSET__music__correct_sfx_ID, 2);
         tutorial_score = 0;
     }
 }

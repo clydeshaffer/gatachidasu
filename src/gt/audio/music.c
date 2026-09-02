@@ -243,6 +243,9 @@ void tick_music() {
 
             } else {
                 op = n << 2;
+                set_audio_param(AMPLITUDE+(op+0), 128);
+                set_audio_param(AMPLITUDE+(op+1), 128);
+                set_audio_param(AMPLITUDE+(op+2), 128);
                 set_audio_param(AMPLITUDE+(op+3), 128);
                 aram[FEEDBACK_AMT + n] = saved_feedback_value[n];
                 music_channel_mask |= channel_masks[n];

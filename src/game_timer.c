@@ -49,7 +49,7 @@ void clear_game_timer() {
     game_timer_pos_y = 94;
     
     puzzle_counter_pos_x = 113;
-    puzzle_counter_pos_y = 109;
+    puzzle_counter_pos_y = 108;
 }
 
 void set_game_timer(int seconds) {

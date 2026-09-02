@@ -275,7 +275,7 @@ int main () {
                 if(player1_new_buttons & INPUT_MASK_C) {
                     if(~win_state & GRID_DRAW_RESULT_PRE_WIN) {
                         if(grid_send_bullet(player_x)) {
-                            play_sound_effect(ASSET__music__shoot_sfx_ID, 3);
+                            play_sound_effect(ASSET__music__shoot_sfx_ID, 2);
                             player_frame_start = PLAYER_TAG_IDLE_START;
                             player_frame_end_next = PLAYER_TAG_IDLE_END;
                             player_frame_end = PLAYER_TAG_BULLET_END;
