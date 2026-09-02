@@ -27,6 +27,9 @@ SpriteSlot finishImg;
 SpriteSlot bitsImg;
 SpriteSlot modeMenuImg;
 SpriteSlot tutorialImg;
+SpriteSlot bossTitlesImg;
+
+#define START_LIVES_COUNT 3
 
 #define ROTATION_ANGLE 32
 char rotation_direction = 0;
@@ -79,6 +82,8 @@ int main () {
     set_sprite_frametable(playerImg, (const Frame*)ASSET__bg__player_json);
     tutorialImg = allocate_sprite(&ASSET__bg__buttons_bmp_load_list);
     set_sprite_frametable(tutorialImg, (const Frame*)ASSET__bg__buttons_json);
+    bossTitlesImg = allocate_sprite(&ASSET__bg__boss_titles_bmp_load_list);
+    set_sprite_frametable(bossTitlesImg, (const Frame*)ASSET__bg__boss_titles_json);
     game_state = GAME_STATE_TITLE;
 
 
@@ -86,7 +91,7 @@ int main () {
         puzzle_offset = 0;
         boss_counter = 1;
         boss_num = 0;
-        play_song(ASSET__music__title_mid, REPEAT_LOOP);
+        play_song(ASSET__music__kachispond_mid, REPEAT_LOOP);
         global_tick = 0;
         grid_init(bitsImg);
         thumbnail_enabled = 0;
@@ -149,7 +154,7 @@ int main () {
                         set_puzzle_counter(0, 2);
                     }
                     if(game_mode == MODE_MARATHON) {
-                        lives = 3;
+                        lives = START_LIVES_COUNT;
                     } else {
                         lives = 0;
                     }
@@ -305,8 +310,13 @@ int main () {
                     boss_counter = 0;
                     ++boss_num;
                     setup_troll_modes(boss_num);
+                    play_song(ASSET__music__cocek_boss_mid, REPEAT_LOOP);
                 } else {
-                    troll_move_mode = 0;
+                    if(troll_title_frame != 0xFF) {
+                        lives = START_LIVES_COUNT;
+                        play_song(ASSET__music__cocek_slow_mid, REPEAT_LOOP);
+                    }
+                    setup_troll_modes(0xFF);
                 }
                 if(game_mode == MODE_MARATHON) {
                     if(decrement_puzzle_counter()) {
@@ -384,6 +394,10 @@ int main () {
                 }
             }
 
+            if(troll_title_frame != 0xFF) {
+                queue_draw_sprite_frame(bossTitlesImg, GRID_CENTER_X, 16, troll_title_frame, 0);
+            }
+
             queue_clear_border(0);
 
             await_draw_queue();
@@ -411,6 +425,9 @@ int main () {
             if(lives) {
                 game_timer_pos_x = 23;
                 game_timer_pos_y = 32;
+            } else {
+                stop_music();
+                play_song(ASSET__music__kachilost_mid, REPEAT_LOOP);
             }
         } else if(game_mode == MODE_TIME_ATTACK) {
             puzzle_counter_pos_x = 17;
@@ -497,5 +514,7 @@ int main () {
             update_inputs();
             tick_music();
         }
+        setup_troll_modes(0xFF);
+        grid_init(bitsImg);
     }
 }

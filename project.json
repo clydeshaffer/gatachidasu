@@ -1,6 +1,6 @@
 {
-    "title" : "Katachidasu",
-    "romname" : "katachidasu.gtr",
+    "title" : "Kachi's Pond",
+    "romname" : "kachispond.gtr",
     "progbanks" : 1,
     "modules" : [
         "PERSIST",

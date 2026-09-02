@@ -4,6 +4,7 @@
 
 #include "gt/audio/music.h"
 #include "gen/assets/music.h"
+#include "gen/assets/bg/boss_titles.json.h"
 
 #include "grid.h"
 #include "sine_tables.h"
@@ -22,6 +23,7 @@ SpriteSlot grid_sprite;
 char troll_move_mode = 0;
 char troll_info_mode = 0;
 char block_color_offset_gx;
+char troll_title_frame = 0xFF;
 
 const char grid_angles[GRID_FULL_COUNT] = {
     -48, -41, -32, -23, -16,
@@ -150,6 +152,17 @@ const char boss_move_modes[BOSS_CONFIG_COUNT] = {
     TROLL_MOVE_LOOSE
 };
 
+const char boss_titles[BOSS_CONFIG_COUNT] = {
+    BOSS_TITLES_TAG_ORBIT_START,
+    BOSS_TITLES_TAG_ORBIT_START,
+    BOSS_TITLES_TAG_FALLING_START,
+    BOSS_TITLES_TAG_LOOSE_START,
+    BOSS_TITLES_TAG_VIBRATE_START,
+    BOSS_TITLES_TAG_REGROW_START,
+    BOSS_TITLES_TAG_ORBIT_START,
+    BOSS_TITLES_TAG_LOOSE_START
+};
+
 const char boss_info_modes[BOSS_CONFIG_COUNT] = {
     0, 0, 0, 0, 0, 0, 0, 0
 };
@@ -158,9 +171,12 @@ void setup_troll_modes(char bossnum) {
     if(bossnum > BOSS_CONFIG_COUNT) {
         troll_move_mode = 0;
         troll_info_mode = 0;
+        troll_title_frame = 0xFF;
+        return;
     }
     troll_move_mode = boss_move_modes[bossnum];
     troll_info_mode = boss_info_modes[bossnum];
+    troll_title_frame = boss_titles[bossnum];
 }
 
 #pragma code-name(push, "bg")

@@ -37,6 +37,7 @@
 
 extern char troll_move_mode;
 extern char troll_info_mode;
+extern char troll_title_frame;
 
 extern char grid_rotation;
 extern signed char grid_angular_momentum;
