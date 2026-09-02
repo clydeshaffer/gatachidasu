@@ -362,8 +362,10 @@ void play_sound_effect(char sfx_id, char channel) {
     sound_effect_bank[channel] = ASSET__sfx_bank_table[sfx_id];
     sound_effect_ptr[channel] = ASSET__sfx_ptr_table[sfx_id];
     change_rom_bank(sound_effect_bank[channel]);
+    if(sound_effect_length[channel] == 0) {
+        saved_feedback_value[channel] = aram[FEEDBACK_AMT + channel];
+    }
     sound_effect_length[channel] = *(sound_effect_ptr[channel]++) + 1;
-    saved_feedback_value[channel] = aram[FEEDBACK_AMT + channel];
     aram[FEEDBACK_AMT + channel] = *(sound_effect_ptr[channel]++);
     music_channel_mask &= ~(channel_masks[channel]);
     pop_rom_bank();
