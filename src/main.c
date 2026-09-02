@@ -310,7 +310,7 @@ int main () {
                     boss_counter = 0;
                     ++boss_num;
                     setup_troll_modes(boss_num);
-                    play_song(ASSET__music__cocek_boss_mid, REPEAT_LOOP);
+                    play_song(ASSET__music__kachi_boss_mid, REPEAT_LOOP);
                 } else {
                     if(troll_title_frame != 0xFF) {
                         lives = START_LIVES_COUNT;
@@ -390,7 +390,7 @@ int main () {
 
             if(game_mode == MODE_MARATHON) {
                 if(lives) {
-                    queue_draw_tiled(84, 11, lives << 3, 8, 96, 0, bitsImg);
+                    queue_draw_tiled(84, 11, (lives << 3)+1, 8, 96+7, 0, bitsImg);
                 }
             }
 
