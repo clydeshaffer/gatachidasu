@@ -53,6 +53,8 @@ char blocks_remaining;
 char target_block_count;
 char display_mode_timeout;
 
+char thumbnail_enabled = 1;
+
 char solution_blocks_destroyed[4];
 
 #define BULLET_MAX 5
@@ -481,29 +483,31 @@ char grid_draw() {
         }
     }
 
-    grid_ind = 0;
-    y = 38;
-    for(r = 0; r < GRID_SIZE; ++r) {
-        x = 87;
-        for(c = 0; c < GRID_SIZE; ++c) {
-            if(grid_target[grid_ind] & 1) {
-                if(grid_ind == 12) {
-                    DIRECT_DRAW_SPRITE(x, y, 7, 7, 24+block_color_offset_gx, 0);
+    if(thumbnail_enabled) {
+        grid_ind = 0;
+        y = 38;
+        for(r = 0; r < GRID_SIZE; ++r) {
+            x = 87;
+            for(c = 0; c < GRID_SIZE; ++c) {
+                if(grid_target[grid_ind] & 1) {
+                    if(grid_ind == 12) {
+                        DIRECT_DRAW_SPRITE(x, y, 7, 7, 24+block_color_offset_gx, 0);
+                    } else {
+                        DIRECT_DRAW_SPRITE(x, y, 7, 7, 8+block_color_offset_gx, 0);
+                    }
+                    
                 } else {
-                    DIRECT_DRAW_SPRITE(x, y, 7, 7, 8+block_color_offset_gx, 0);
+                    if(grid_ind == 12) {
+                        DIRECT_DRAW_SPRITE(x, y, 7, 7, 48, 0);
+                    } else {
+                        DIRECT_DRAW_SPRITE(x, y, 7, 7, 40, 0);
+                    }
                 }
-                
-            } else {
-                if(grid_ind == 12) {
-                    DIRECT_DRAW_SPRITE(x, y, 7, 7, 48, 0);
-                } else {
-                    DIRECT_DRAW_SPRITE(x, y, 7, 7, 40, 0);
-                }
+                x += 7;
+                ++grid_ind;
             }
-            x += 7;
-            ++grid_ind;
+            y += 7;
         }
-        y += 7;
     }
     //await_drawing();
     return result;

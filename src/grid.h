@@ -40,8 +40,10 @@ extern char troll_info_mode;
 
 extern char grid_rotation;
 extern signed char grid_angular_momentum;
+extern char grid_x_pos;
 extern char grid_y_pos;
 extern char grid_time;
+extern char thumbnail_enabled;
 
 void grid_init(SpriteSlot s);
 

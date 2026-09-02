@@ -7,4 +7,4 @@
 
 extern char game_mode;
 
-void do_mode_menu(SpriteSlot menu_gfx);
+char do_mode_menu(SpriteSlot menu_gfx);

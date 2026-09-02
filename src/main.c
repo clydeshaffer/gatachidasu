@@ -1,5 +1,6 @@
 #include "gt/gametank.h"
 #include "gt/gfx/draw_queue.h"
+#include "gt/gfx/draw_direct.h"
 #include "gt/audio/music.h"
 #include "gt/gfx/sprites.h"
 #include "gt/input.h"
@@ -14,6 +15,9 @@
 #include "gen/assets/music.h"
 #include "gen/assets/bg.h"
 #include "gen/assets/bg/player.json.h"
+
+#include "sine_tables.h"
+#include <zlib.h>
 
 
 SpriteSlot bgImg;
@@ -58,6 +62,13 @@ char color_cycle = 0;
 
 int main () {
     init_graphics();
+
+    direct_prepare_array_mode();
+    change_rom_bank(ASSET__bg__splash_bmp_bank);
+    *bank_reg = 0;
+    inflatemem(vram+0x2000, &ASSET__bg__splash_bmp_ptr);
+    init_graphics();
+
     init_game_timer_system();
     bgImg = allocate_sprite(&ASSET__bg__scene_bmp_load_list);
     bitsImg = allocate_sprite(&ASSET__bg__bits_bmp_load_list);
@@ -77,38 +88,71 @@ int main () {
         boss_num = 0;
         play_song(ASSET__music__title_mid, REPEAT_LOOP);
         global_tick = 0;
+        grid_init(bitsImg);
+        thumbnail_enabled = 0;
+        grid_x_pos = 24;
+        grid_y_pos = 80;
+        player_frame = PLAYER_TAG_STEP_RIGHT_START;
         while(game_state == GAME_STATE_TITLE) {
-            if(global_tick == 64) {
-                global_tick = 0;
-                ++color_cycle;
-                color_cycle &= 3;
+            grid_rotation += global_tick&1;
+            queue_draw_box(0, 0, 127, 68, 180);
+            setSineMode(0);
+            player_vy = getSine(global_tick+16);
+            player_vy += 8;
+            player_vy >>= 2;
+            queue_draw_tiled(0, 64 + player_vy, 127, 16, 112, 64, modeMenuImg);
+            queue_draw_tiled(0, 80 + player_vy, 127, 16, 112, 80, modeMenuImg);
+            queue_draw_tiled(0, 96 + player_vy, 127, 16, 112, 96, modeMenuImg);
+            queue_draw_tiled(0, 112 + player_vy, 127, 16, 112, 112, modeMenuImg);
+            queue_draw_sprite(20, 10, 88, 47, 20, 10, titleImg);
+            player_vy = getSine(global_tick);
+            player_vy += 8;
+            player_vy >>= 2;
+            queue_draw_sprite(27, 78 + player_vy, 73, 38, 3, 85, titleImg);
+
+            queue_draw_sprite_frame(playerImg, 32, PLAYER_NORMAL_Y, player_frame, 0);
+            ++player_subframe;
+            if(player_subframe > 6) {
+                player_subframe = 0;
+                ++player_frame;
+                if(player_frame >= PLAYER_TAG_STEP_RIGHT_END) {
+                    player_frame = PLAYER_TAG_STEP_RIGHT_START;
+                }
             }
-            queue_draw_box(0, global_tick, 64, 64, title_colors[color_cycle+3]);
-            queue_draw_box(global_tick, 64, 64, 64, title_colors[color_cycle+2]);
-            queue_draw_box(64, 64-global_tick, 64, 64, title_colors[color_cycle+1]);
-            queue_draw_box(64-global_tick, 0, 64, 64, title_colors[color_cycle]);
-            queue_draw_sprite(0, 0, 127, 127, 0, 0, titleImg);
+
+            
+            await_draw_queue();
+            push_rom_bank();
+            change_rom_bank(ASSET__bg__puzzles_bin_bank);
+            grid_draw();
+            pop_rom_bank();
+
+            if(global_tick & 64) {
+                queue_draw_sprite(41, 80, 46, 8, 0, 64, titleImg);
+            }
             queue_clear_border(0);
 
             if(player1_new_buttons & INPUT_MASK_START) {
-                do_mode_menu(modeMenuImg);
-                game_state = GAME_STATE_PLAYING;
-                troll_move_mode = 0;
-                troll_info_mode = 0;
-                if(game_mode == MODE_TIME_ATTACK) {
-                    set_game_timer(151);
-                    set_puzzle_counter(0, 0);
-                } else {
-                    clear_game_timer();
-                }
-                if(game_mode == MODE_TUTORIAL) {
-                    init_tutorial(tutorialImg);
-                    set_puzzle_counter(0, 2);
-                }
-                if(game_mode == MODE_MARATHON) {
-                    lives = 3;
-                } else {
-                    lives = 0;
+                if(do_mode_menu(modeMenuImg)) {
+                    puzzle_offset = 0;
+                    game_state = GAME_STATE_PLAYING;
+                    troll_move_mode = 0;
+                    troll_info_mode = 0;
+                    if(game_mode == MODE_TIME_ATTACK) {
+                        set_game_timer(151);
+                        set_puzzle_counter(0, 0);
+                    } else {
+                        clear_game_timer();
+                    }
+                    if(game_mode == MODE_TUTORIAL) {
+                        init_tutorial(tutorialImg);
+                        set_puzzle_counter(0, 2);
+                    }
+                    if(game_mode == MODE_MARATHON) {
+                        lives = 3;
+                    } else {
+                        lives = 0;
+                    }
                 }
             }
 
@@ -119,6 +163,7 @@ int main () {
             tick_music();
             ++global_tick;
         }
+        thumbnail_enabled = 1;
         global_tick = 0;
         grid_init(bitsImg);
         push_rom_bank();
@@ -242,16 +287,6 @@ int main () {
             win_state |= grid_draw();
             pop_rom_bank();
 
-            if(player1_new_buttons & INPUT_MASK_START) {
-                grid_init(bitsImg);
-                push_rom_bank();
-                change_rom_bank(ASSET__bg__puzzles_bin_bank);
-                grid_setup_puzzle(&ASSET__bg__puzzles_bin_ptr[puzzle_offset]);
-                pop_rom_bank();
-                win_state = 0;
-            }
-
-            //queue_draw_sprite(player_x - 8, PLAYER_NORMAL_Y + (player_y >> 2), 16, 16, PLAYER_SPRITE_X, PLAYER_SPRITE_Y, bgImg);
             queue_draw_sprite_frame(playerImg, player_x, PLAYER_NORMAL_Y + (player_y >> 2), player_frame, 0);
             if((++player_subframe) == PLAYER_SUBFRAMES) {
                 player_subframe = 0;
@@ -263,7 +298,6 @@ int main () {
             
 
             if(win_state & GRID_DRAW_RESULT_WIN) {
-                //queue_draw_box(65,33, 16, 16, 251);
                 win_state = 0;
                 puzzle_offset += GRID_FULL_COUNT;
                 ++boss_counter;

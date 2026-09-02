@@ -21,7 +21,7 @@ static const char menu_item_gy[MENU_ITEM_COUNT] = {68, 88, 108};
 static const char menu_item_w[MENU_ITEM_COUNT] = {68, 88, 108};
 static const char menu_item_y[MENU_ITEM_COUNT] = {68, 84, 100};
 
-void do_mode_menu(SpriteSlot _menu_gfx) {
+char do_mode_menu(SpriteSlot _menu_gfx) {
     menu_gfx = _menu_gfx;
     water_offset = 0;
     selected_item = 0;
@@ -31,7 +31,7 @@ void do_mode_menu(SpriteSlot _menu_gfx) {
         update_inputs();
         tick_music();
         queue_draw_sprite(0, 0, 60, 64, 0, 0, menu_gfx);
-        queue_draw_sprite(60, 0, 68, 65, 60, (head_bob >> 5) & 1, menu_gfx);
+        queue_draw_sprite(60, 0, 68, 64, 60, (head_bob >> 5) & 1, menu_gfx);
         tmpw = water_offset >> 1;
         queue_draw_tiled(0, 64, 127, 16, 112+tmpw, 64, menu_gfx);
         queue_draw_tiled(0, 80, 127, 16, 112+tmpw, 80, menu_gfx);
@@ -68,8 +68,12 @@ void do_mode_menu(SpriteSlot _menu_gfx) {
             game_mode = selected_item;
             break;
         }
+        if(player1_new_buttons & INPUT_MASK_B) {
+            return 0;
+        }
         await_draw_queue();
     }
     await_vsync(1);
     flip_pages();
+    return 1;
 }
