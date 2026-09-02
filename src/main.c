@@ -437,8 +437,7 @@ int main () {
                 queue_draw_sprite_rect();
             }
             render_game_timer();            
-            queue_draw_sprite(player_x - 16, PLAYER_NORMAL_Y + (player_y >> 2) - 20, 32, 36, rect.x, rect.y, bgImg);
-            queue_draw_sprite_frame(playerImg, player_x, rect.y+20, player_frame, 0);
+            queue_draw_sprite_frame(playerImg, player_x, PLAYER_NORMAL_Y + (player_y >> 2), player_frame, 0);
             ++player_subframe;
             if(player_subframe > 6) {
                 player_subframe = 0;
