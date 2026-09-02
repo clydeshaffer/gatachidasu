@@ -47,8 +47,11 @@ char win_state;
 char prev_win_state;
 char game_state;
 int puzzle_offset = 0;
+char boss_counter = 0;
+char boss_num;
 
 char global_tick = 0;
+char lives;
 
 static const char title_colors[8] = {118, 182, 23, 238, 118, 182, 23, 238};
 char color_cycle = 0;
@@ -70,6 +73,8 @@ int main () {
 
     while(1) {
         puzzle_offset = 0;
+        boss_counter = 1;
+        boss_num = 0;
         play_song(ASSET__music__title_mid, REPEAT_LOOP);
         global_tick = 0;
         while(game_state == GAME_STATE_TITLE) {
@@ -99,6 +104,11 @@ int main () {
                 if(game_mode == MODE_TUTORIAL) {
                     init_tutorial(tutorialImg);
                     set_puzzle_counter(0, 2);
+                }
+                if(game_mode == MODE_MARATHON) {
+                    lives = 3;
+                } else {
+                    lives = 0;
                 }
             }
 
@@ -158,8 +168,11 @@ int main () {
 
                 grid_rotation += rotation_direction;
                 --rotation_timer;
-                if(!rotation_timer) {
-                    grid_rotation &= (32|64);
+                if((!rotation_timer) || ((grid_rotation+16) & (32|64)) == grid_rotation) {
+                    if(!grid_angular_momentum) {
+                        grid_rotation += 16;
+                        grid_rotation &= (32|64);
+                    }
                     player_frame = PLAYER_TAG_IDLE_START;
                     player_frame_start = PLAYER_TAG_IDLE_START;
                     player_frame_end = PLAYER_TAG_IDLE_END;
@@ -169,9 +182,11 @@ int main () {
                 rotation_direction = 0;
                 if(player1_new_buttons & INPUT_MASK_B) {
                     --rotation_direction;
+                    grid_angular_momentum = 0;
                 }
                 if(player1_new_buttons & INPUT_MASK_A) {
                     ++rotation_direction;
+                    grid_angular_momentum = 0;
                 }
                 if(rotation_direction) {
                     rotation_timer = ROTATION_ANGLE;
@@ -200,10 +215,10 @@ int main () {
                 player_subframe = 0;
             }
 
-            if(target_x < (GRID_CENTER_X - 16)) {
-                target_x = GRID_CENTER_X - 16;
-            } else if(target_x > (GRID_CENTER_X + 16)) {
-                target_x = GRID_CENTER_X + 16;
+            if(target_x < (GRID_CENTER_X - 24)) {
+                target_x = GRID_CENTER_X - 24;
+            } else if(target_x > (GRID_CENTER_X + 24)) {
+                target_x = GRID_CENTER_X + 24;
             }
 
             if(target_x == player_x) {
@@ -251,6 +266,14 @@ int main () {
                 //queue_draw_box(65,33, 16, 16, 251);
                 win_state = 0;
                 puzzle_offset += GRID_FULL_COUNT;
+                ++boss_counter;
+                if(boss_counter == 5) {
+                    boss_counter = 0;
+                    ++boss_num;
+                    setup_troll_modes(boss_num);
+                } else {
+                    troll_move_mode = 0;
+                }
                 if(game_mode == MODE_MARATHON) {
                     if(decrement_puzzle_counter()) {
                         game_state = GAME_STATE_FINISH;
@@ -276,17 +299,27 @@ int main () {
                         game_state = GAME_STATE_FINISH;
                         troll_move_mode = 0;
                     }
-                    troll_move_mode = TROLL_MOVE_ORBIT;
-                    grid_init(bitsImg);
-                    push_rom_bank();
-                    change_rom_bank(ASSET__bg__puzzles_bin_bank);
-                    grid_setup_puzzle(&ASSET__bg__puzzles_bin_ptr[puzzle_offset]);
-                    pop_rom_bank();
+                    if(boss_counter == 2) {
+                        setup_troll_modes(0);
+                    }
+                    if(boss_counter < 3) {
+                        grid_init(bitsImg);
+                        push_rom_bank();
+                        change_rom_bank(ASSET__bg__puzzles_bin_bank);
+                        grid_setup_puzzle(&ASSET__bg__puzzles_bin_ptr[puzzle_offset]);
+                        pop_rom_bank();
+                    }
                 }
                
             } else if(win_state & GRID_DRAW_RESULT_LOSE) {
                 //queue_draw_box(65,33, 16, 16, 90);
                 win_state = 0;
+                if(game_mode == MODE_MARATHON) {
+                    --lives;
+                    if(!lives) {
+                        game_state = GAME_STATE_FINISH;
+                    }
+                }
             }
             
             if(win_state & GRID_DRAW_RESULT_PRE_WIN) {
@@ -311,6 +344,12 @@ int main () {
                 draw_tutorial();
             }
 
+            if(game_mode == MODE_MARATHON) {
+                if(lives) {
+                    queue_draw_tiled(84, 11, lives << 3, 8, 96, 0, bitsImg);
+                }
+            }
+
             queue_clear_border(0);
 
             await_draw_queue();
@@ -333,15 +372,30 @@ int main () {
 
         stop_music();
         play_song(ASSET__music__cocek_mid, REPEAT_LOOP);
+
         if(game_mode == MODE_MARATHON) {
-            game_timer_pos_x = 23;
-            game_timer_pos_y = 32;
+            if(lives) {
+                game_timer_pos_x = 23;
+                game_timer_pos_y = 32;
+            }
         } else if(game_mode == MODE_TIME_ATTACK) {
             puzzle_counter_pos_x = 17;
             puzzle_counter_pos_y = 35;
         }
 
         while(game_state == GAME_STATE_FINISH) {
+         
+            ++global_tick;
+            //--target_x;
+            queue_draw_sprite(0, 3, 127, 127, 0, 3, bgImg);
+            if(game_mode == MODE_TIME_ATTACK) {
+                queue_draw_sprite(82, 109, 28, 7, 82, 121, bgImg);
+            }
+            push_rom_bank();
+            change_rom_bank(ASSET__bg__puzzles_bin_bank);
+            win_state != grid_draw();
+            pop_rom_bank();
+            
             rect.x = 5;
             rect.y = 21;
             rect.w = 66;
@@ -350,7 +404,21 @@ int main () {
             rect.gy = 0;
             rect.b = finishImg;
             if(game_mode == MODE_MARATHON) {
-                queue_draw_sprite_rect();
+                if(lives) {
+                    queue_draw_sprite_rect();
+                } else {
+                    rect.gx = 64;
+                    rect.h = 32;
+                    rect.gy = 96;
+                    rect.w = 64;
+                    queue_draw_sprite_rect();
+                    rect.gx = 0;
+                    rect.y += 32;
+                    rect.gy = 32;
+                    rect.b = finishImg;
+                    rect.w = 66;
+                    queue_draw_sprite_rect();
+                }
             } else if(game_mode == MODE_TIME_ATTACK) {
                 rect.h = 32;
                 rect.gy = 64;
@@ -368,14 +436,18 @@ int main () {
                 rect.b = finishImg;
                 queue_draw_sprite_rect();
             }
-            render_game_timer();
+            render_game_timer();            
             queue_draw_sprite(player_x - 16, PLAYER_NORMAL_Y + (player_y >> 2) - 20, 32, 36, rect.x, rect.y, bgImg);
             queue_draw_sprite_frame(playerImg, player_x, rect.y+20, player_frame, 0);
             ++player_subframe;
             if(player_subframe > 6) {
                 player_subframe = 0;
                 ++player_frame;
-                if(player_frame >= PLAYER_TAG_STEP_RIGHT_END) {
+                if((game_mode == MODE_MARATHON) && !lives) {
+                    if(player_frame >= PLAYER_TAG_BULLET_END) {
+                        player_frame = PLAYER_TAG_BULLET_START;
+                    }
+                }else if(player_frame >= PLAYER_TAG_STEP_RIGHT_END) {
                     player_frame = PLAYER_TAG_STEP_RIGHT_START;
                 }
             }

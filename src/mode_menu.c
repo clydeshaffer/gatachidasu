@@ -31,7 +31,7 @@ void do_mode_menu(SpriteSlot _menu_gfx) {
         update_inputs();
         tick_music();
         queue_draw_sprite(0, 0, 60, 64, 0, 0, menu_gfx);
-        queue_draw_sprite(60, 0, 68, 64, 60, (head_bob >> 5) & 1, menu_gfx);
+        queue_draw_sprite(60, 0, 68, 65, 60, (head_bob >> 5) & 1, menu_gfx);
         tmpw = water_offset >> 1;
         queue_draw_tiled(0, 64, 127, 16, 112+tmpw, 64, menu_gfx);
         queue_draw_tiled(0, 80, 127, 16, 112+tmpw, 80, menu_gfx);

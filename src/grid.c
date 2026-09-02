@@ -9,10 +9,14 @@
 #include "sine_tables.h"
 #include "mode_menu.h"
 
+#include "gt/feature/random/random.h"
+
 char grid_rotation;
 char grid_time, grid_time2;
 char grid_x_pos;
 char grid_y_pos;
+signed char grid_angular_momentum;
+signed char grid_momentum_direction;
 SpriteSlot grid_sprite;
 
 char troll_move_mode = 0;
@@ -42,11 +46,14 @@ const char grid_radius[GRID_FULL_COUNT] = {
 
 char grid_render_mode;
 char grid_status[GRID_FULL_COUNT];
+char old_grid_status[GRID_FULL_COUNT];
 char grid_target[GRID_FULL_COUNT];
 char solution_rotations_mask;
 char blocks_remaining;
 char target_block_count;
 char display_mode_timeout;
+
+char solution_blocks_destroyed[4];
 
 #define BULLET_MAX 5
 char next_bullet;
@@ -81,6 +88,8 @@ char grid_get_display_rotation() {
 void grid_init(SpriteSlot s) {
     static char i;
     grid_rotation = 0;
+    grid_angular_momentum = 0;
+    grid_momentum_direction = 0;
     grid_time = 0;
     grid_time2 = 0;
     grid_x_pos = 0;
@@ -103,6 +112,10 @@ void grid_init(SpriteSlot s) {
     } else {
         block_color_offset_gx = 0;
     }
+    solution_blocks_destroyed[0] = 0;
+    solution_blocks_destroyed[1] = 0;
+    solution_blocks_destroyed[2] = 0;
+    solution_blocks_destroyed[3] = 0;
 }
 
 void grid_setup_explode() {
@@ -122,6 +135,30 @@ void grid_setup_explode() {
         }
     }
     grid_render_mode = GRID_MODE_EXPLODE;
+}
+
+const char boss_move_modes[BOSS_CONFIG_COUNT] = {
+    TROLL_MOVE_ORBIT_EASY,
+    TROLL_MOVE_ORBIT,
+    TROLL_MOVE_FALLING,
+    TROLL_MOVE_LOOSE,
+    TROLL_MOVE_VIBRATE,
+    TROLL_MOVE_REGROWTH,
+    TROLL_MOVE_ORBIT,
+    TROLL_MOVE_LOOSE
+};
+
+const char boss_info_modes[BOSS_CONFIG_COUNT] = {
+    0, 0, 0, 0, 0, 0, 0, 0
+};
+
+void setup_troll_modes(char bossnum) {
+    if(bossnum > BOSS_CONFIG_COUNT) {
+        troll_move_mode = 0;
+        troll_info_mode = 0;
+    }
+    troll_move_mode = boss_move_modes[bossnum];
+    troll_info_mode = boss_info_modes[bossnum];
 }
 
 #pragma code-name(push, "bg")
@@ -193,27 +230,6 @@ char grid_draw() {
     static char result;
     static signed char x, y;
 
-    switch(troll_move_mode) {
-        case TROLL_MOVE_NONE: break;
-        case TROLL_MOVE_ORBIT:
-            ++grid_time;
-            if(grid_time&1) {
-                ++grid_time2;
-            }
-            setSineMode(0);
-            grid_x_pos = getSine(grid_time2);
-            grid_y_pos = GRID_CENTER_Y_START + getSine(grid_time2+32);
-            break;
-        case TROLL_MOVE_VIBRATE:
-            ++grid_time;
-            setSineMode(0);
-            grid_time2+=getSine(grid_time>>1);
-            grid_x_pos = getSine(grid_time2);
-            break;
-        default:
-            break;
-    }
-
     result = GRID_DRAW_RESULT_NONE;
 
     grid_rotation_cosine = grid_rotation + 32;
@@ -230,50 +246,153 @@ char grid_draw() {
         }
     }
 
-    if(grid_render_mode != GRID_MODE_EXPLODE) {
-        for(r = 0; r < GRID_SIZE; ++r) {
-            for(c = 0; c < GRID_SIZE; ++c) {
-                if(grid_status[grid_ind]) {
-                    
-                    if(grid_radius[grid_ind] & 0x80) {
-                        x = 0;
-                        y = 0;
-                    } else {
-                        setSineMode(grid_radius[grid_ind]);
-                        y = getSine(grid_angles[grid_ind] + grid_rotation);
-                        x = getSine(grid_angles[grid_ind] + grid_rotation_cosine);
+    if(grid_render_mode == GRID_MODE_GAME) {
+        switch(troll_move_mode) {
+            case TROLL_MOVE_NONE: break;
+            case TROLL_MOVE_ORBIT:
+                ++grid_time;
+            case TROLL_MOVE_ORBIT_EASY:
+                ++grid_time;
+                if(!(grid_time&3)) {
+                    ++grid_time2;
+                }
+                setSineMode(0);
+                grid_x_pos = getSine(grid_time2);
+                grid_y_pos = GRID_CENTER_Y_START + getSine(grid_time2+32);
+                break;
+            case TROLL_MOVE_VIBRATE:
+                ++grid_time;
+                setSineMode(0);
+                grid_time2+=getSine(grid_time>>1);
+                grid_x_pos = getSine(grid_time2);
+                break;
+            case TROLL_MOVE_FALLING:
+                ++grid_time;
+                if(!(grid_time&15)) {
+                    ++grid_y_pos;
+                    if(grid_y_pos > 78) {
+                        grid_setup_explode();
+                        play_sound_effect(ASSET__music__break_sfx_ID, 3);
+                        result = GRID_DRAW_RESULT_LOSE;
                     }
+                }
+                break;
+            case TROLL_MOVE_REGROWTH:
+                ++grid_time;
+                if(!(grid_time&63)) {
+                    grid_time2 = rnd_range(0, GRID_FULL_COUNT);
+                    if(!grid_status[grid_time2]) {
+                        grid_status[grid_time2] = old_grid_status[grid_time2];
+                        ++blocks_remaining;
+                        if(grid_status[grid_ind&1]) {
+                            solution_blocks_destroyed[0]--;
+                            if(!solution_blocks_destroyed[0]) {
+                                solution_rotations_mask |= 1;
+                            }
+                        }
+                        if(grid_status[grid_ind&2]) {
+                            solution_blocks_destroyed[1]--;
+                            if(!solution_blocks_destroyed[1]) {
+                                solution_rotations_mask |= 2;
+                            }
+                        }
+                        if(grid_status[grid_ind&4]) {
+                            solution_blocks_destroyed[2]--;
+                            if(!solution_blocks_destroyed[2]) {
+                                solution_rotations_mask |= 4;
+                            }
+                        }
+                        if(grid_status[grid_ind&8]) {
+                            solution_blocks_destroyed[3]--;
+                            if(!solution_blocks_destroyed[3]) {
+                                solution_rotations_mask |= 8;
+                            }
+                        }
 
-                    x += GRID_CENTER_X + grid_x_pos;
-                    y += grid_y_pos;
-                    
-                    if(grid_render_mode == GRID_MODE_GAME) {
-                        for(i = 0; i < BULLET_MAX; ++i) {
-                            if(bullets_x[i]) {
-                                if(((char)(bullets_x[i] - x - GRID_SQUARE_OFFSET)) <= GRID_SQUARE_SIZE) {
-                                    if(((char)(bullets_y[i] - y - GRID_SQUARE_OFFSET)) <= GRID_SQUARE_SIZE) {
-                                        bullets_x[i] = 0;
-                                        bullets_y[i] = 0;
-                                        --active_bullets;
-                                        solution_rotations_mask &= ~grid_status[grid_ind];
-                                        grid_status[grid_ind] = 0;
-                                        play_sound_effect(ASSET__music__hit_sfx_ID, 3);
-                                        --blocks_remaining;
-                                        if(solution_rotations_mask == 0) {
-                                            grid_setup_explode();
-                                            play_sound_effect(ASSET__music__break_sfx_ID, 3);
-                                            result = GRID_DRAW_RESULT_LOSE;
-                                        } else if(blocks_remaining == target_block_count) {
-                                            grid_render_mode = GRID_MODE_DISPLAY;
-                                            result = GRID_DRAW_RESULT_PRE_WIN;
+                    }
+                }
+                break;
+            case TROLL_MOVE_LOOSE:
+                if(grid_angular_momentum != 0) {
+                    if(grid_angular_momentum & 128) {
+                        grid_time -= grid_angular_momentum;
+                    } else {
+                        grid_time += grid_angular_momentum;
+                    }
+                    if(grid_time > 16) {
+                        grid_time -= 16;
+                        grid_rotation += grid_momentum_direction;
+                        grid_angular_momentum;
+                        grid_time++;
+                        if(!(grid_time&3)) grid_angular_momentum -= grid_momentum_direction;
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    if(grid_render_mode != GRID_MODE_EXPLODE) {
+
+        if(!result) {
+            for(r = 0; r < GRID_SIZE; ++r) {
+                for(c = 0; c < GRID_SIZE; ++c) {
+                    if(grid_status[grid_ind]) {
+                        
+                        if(grid_radius[grid_ind] & 0x80) {
+                            x = 0;
+                            y = 0;
+                        } else {
+                            setSineMode(grid_radius[grid_ind]);
+                            y = getSine(grid_angles[grid_ind] + grid_rotation);
+                            x = getSine(grid_angles[grid_ind] + grid_rotation_cosine);
+                        }
+
+                        x += GRID_CENTER_X + grid_x_pos;
+                        y += grid_y_pos;
+                        
+                        if(grid_render_mode == GRID_MODE_GAME) {
+                            for(i = 0; i < BULLET_MAX; ++i) {
+                                if(bullets_x[i]) {
+                                    if(((char)(bullets_x[i] - x - GRID_SQUARE_OFFSET)) <= GRID_SQUARE_SIZE) {
+                                        if(((char)(bullets_y[i] - y - GRID_SQUARE_OFFSET)) <= GRID_SQUARE_SIZE) {
+                                            
+                                            bullets_y[i] = 0;
+                                            --active_bullets;
+                                            solution_rotations_mask &= ~grid_status[grid_ind];
+                                            if(grid_status[grid_ind&1]) solution_blocks_destroyed[0]++;
+                                            if(grid_status[grid_ind&2]) solution_blocks_destroyed[1]++;
+                                            if(grid_status[grid_ind&4]) solution_blocks_destroyed[2]++;
+                                            if(grid_status[grid_ind&8]) solution_blocks_destroyed[3]++;
+                                            old_grid_status[grid_ind] = grid_status[grid_ind];
+                                            grid_status[grid_ind] = 0;
+                                            play_sound_effect(ASSET__music__hit_sfx_ID, 3);
+                                            --blocks_remaining;
+                                            if(solution_rotations_mask == 0) {
+                                                grid_setup_explode();
+                                                play_sound_effect(ASSET__music__break_sfx_ID, 3);
+                                                result = GRID_DRAW_RESULT_LOSE;
+                                            } else if(blocks_remaining == target_block_count) {
+                                                grid_render_mode = GRID_MODE_DISPLAY;
+                                                result = GRID_DRAW_RESULT_PRE_WIN;
+                                            } else if(troll_move_mode == TROLL_MOVE_LOOSE) {
+                                                grid_angular_momentum += ((signed char)((GRID_CENTER_X + grid_x_pos) -  bullets_x[i])) >> 2;
+                                                if(grid_angular_momentum & 128) {
+                                                    grid_momentum_direction = -1;
+                                                } else {
+                                                    grid_momentum_direction = 1;
+                                                }
+                                            }
+                                            bullets_x[i] = 0;
                                         }
                                     }
                                 }
                             }
                         }
                     }
+                    ++grid_ind;
                 }
-                ++grid_ind;
             }
         }
     }
@@ -288,7 +407,7 @@ char grid_draw() {
         for(r = 0; r < GRID_SIZE; ++r) {
             for(c = 0; c < GRID_SIZE; ++c) {
                 if(grid_status[grid_ind]) {
-                    DIRECT_DRAW_SPRITE(grid_explode_x[grid_ind] >> 1, grid_explode_y[grid_ind] >> 1, GRID_SQUARE_SIZE, GRID_SQUARE_SIZE, GRID_SPRITE_X, GRID_SPRITE_Y);
+                    DIRECT_DRAW_SPRITE(grid_explode_x[grid_ind] >> 1, grid_explode_y[grid_ind] >> 1, GRID_SQUARE_SIZE, GRID_SQUARE_SIZE, GRID_SPRITE_X+block_color_offset_gx, GRID_SPRITE_Y);
                     
                     grid_explode_y[grid_ind] += grid_explode_vy[grid_ind];
                     if((global_tick & 3) == 0) {

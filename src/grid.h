@@ -24,6 +24,8 @@
 #define TROLL_MOVE_VIBRATE 2
 #define TROLL_MOVE_FALLING 3
 #define TROLL_MOVE_REGROWTH 4
+#define TROLL_MOVE_ORBIT_EASY 5
+#define TROLL_MOVE_LOOSE 6
 
 //hehehe this one is a bitmask >;)
 #define TROLL_INFO_NONE 0
@@ -31,11 +33,15 @@
 #define TROLL_INFO_MIRROR 2
 #define TROLL_INFO_INVERT 4
 
+#define BOSS_CONFIG_COUNT 8
+
 extern char troll_move_mode;
 extern char troll_info_mode;
 
 extern char grid_rotation;
+extern signed char grid_angular_momentum;
 extern char grid_y_pos;
+extern char grid_time;
 
 void grid_init(SpriteSlot s);
 
@@ -45,3 +51,5 @@ void grid_setup_puzzle(const unsigned char *shape);
 char grid_send_bullet(char x);
 
 char grid_draw();
+
+void setup_troll_modes(char bossnum);
