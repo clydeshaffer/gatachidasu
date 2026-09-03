@@ -35,7 +35,7 @@ SpriteSlot bossTitlesImg;
 char rotation_direction = 0;
 char rotation_timer = 0;
 
-#define PLAYER_NORMAL_Y 110
+#define PLAYER_NORMAL_Y 107
 #define PLAYER_SUBFRAMES 6
 
 #define GAME_STATE_TITLE 0
@@ -196,7 +196,7 @@ int main () {
             //queue_draw_box(0,3, 80, 123, 63);
             queue_draw_sprite(0, 3, 127, 127, 0, 3, bgImg);
             if(game_mode == MODE_TIME_ATTACK) {
-                queue_draw_sprite(82, 109, 28, 7, 82, 121, bgImg);
+                queue_draw_sprite(82, 107, 28, 7, 82, 121, bgImg);
             } else if(game_mode == MODE_TUTORIAL) {
                 check_tutorial_conditions();
             }
@@ -440,7 +440,7 @@ int main () {
             //--target_x;
             queue_draw_sprite(0, 3, 127, 127, 0, 3, bgImg);
             if(game_mode == MODE_TIME_ATTACK) {
-                queue_draw_sprite(82, 109, 28, 7, 82, 121, bgImg);
+                queue_draw_sprite(82, 107, 28, 7, 82, 121, bgImg);
             }
             push_rom_bank();
             change_rom_bank(ASSET__bg__puzzles_bin_bank);
