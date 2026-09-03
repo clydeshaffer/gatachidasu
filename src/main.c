@@ -419,7 +419,7 @@ int main () {
         }
 
         stop_music();
-        play_song(ASSET__music__cocek_mid, REPEAT_LOOP);
+        play_song(ASSET__music__Kachi_Wins_mid, REPEAT_LOOP);
 
         if(game_mode == MODE_MARATHON) {
             if(lives) {
