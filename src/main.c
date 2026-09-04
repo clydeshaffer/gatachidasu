@@ -15,6 +15,7 @@
 #include "gen/assets/music.h"
 #include "gen/assets/bg.h"
 #include "gen/assets/bg/player.json.h"
+#include "gen/assets/bg/boss_titles.json.h"
 
 #include "sine_tables.h"
 #include <zlib.h>
@@ -63,6 +64,9 @@ char lives;
 static const char title_colors[8] = {118, 182, 23, 238, 118, 182, 23, 238};
 char color_cycle = 0;
 
+char attract_mode = 0;
+char attract_mode_timer = 0;
+
 int main () {
     init_graphics();
 
@@ -91,13 +95,16 @@ int main () {
         puzzle_offset = 0;
         boss_counter = 1;
         boss_num = 0;
-        play_song(ASSET__music__kachispond_mid, REPEAT_LOOP);
+        if(!attract_mode)
+            play_song(ASSET__music__kachispond_mid, REPEAT_LOOP);
         global_tick = 0;
         grid_init(bitsImg);
         thumbnail_enabled = 0;
         grid_x_pos = 24;
         grid_y_pos = 80;
         player_frame = PLAYER_TAG_STEP_RIGHT_START;
+        attract_mode_timer = 0;
+        attract_mode = 0;
         while(game_state == GAME_STATE_TITLE) {
             grid_rotation += global_tick&1;
             queue_draw_box(0, 0, 127, 68, 180);
@@ -158,7 +165,15 @@ int main () {
                     } else {
                         lives = 0;
                     }
+                } else {
+                    attract_mode_timer = 0;
                 }
+            } else if(attract_mode_timer == 5) {
+                game_state = GAME_STATE_PLAYING;
+                game_mode = MODE_TUTORIAL;
+                init_tutorial(tutorialImg);
+                set_puzzle_counter(0, 2);
+                attract_mode = 1;
             }
 
             await_draw_queue();
@@ -167,6 +182,9 @@ int main () {
             update_inputs();
             tick_music();
             ++global_tick;
+            if(global_tick == 0) {
+                ++attract_mode_timer;
+            }
         }
         thumbnail_enabled = 1;
         global_tick = 0;
@@ -188,8 +206,12 @@ int main () {
         player_frame_end = PLAYER_TAG_IDLE_END;
         player_frame_end_next = player_frame_end;
 
-        stop_music();
-        play_song(ASSET__music__cocek_slow_mid, REPEAT_LOOP);
+        if(!attract_mode) {
+            stop_music();
+            play_song(ASSET__music__cocek_slow_mid, REPEAT_LOOP);
+        } else {
+            start_playback();
+        }
 
         while (game_state == GAME_STATE_PLAYING) {                                     //  Run forever
             //queue_clear_screen(3);
@@ -313,8 +335,12 @@ int main () {
                     play_song(ASSET__music__kachi_boss_mid, REPEAT_LOOP);
                 } else {
                     if(troll_title_frame != 0xFF) {
-                        lives = START_LIVES_COUNT;
-                        play_song(ASSET__music__cocek_slow_mid, REPEAT_LOOP);
+                        if(game_mode == MODE_MARATHON) {
+                            lives = START_LIVES_COUNT;
+                        }
+                        if(!attract_mode) {
+                            play_song(ASSET__music__cocek_slow_mid, REPEAT_LOOP);
+                        }
                     }
                     setup_troll_modes(0xFF);
                 }
@@ -388,13 +414,20 @@ int main () {
                 draw_tutorial();
             }
 
+            if(attract_mode && !enable_playback) {
+                game_state = GAME_STATE_TITLE;
+            }
+
             if(game_mode == MODE_MARATHON) {
                 if(lives) {
                     queue_draw_tiled(84, 11, (lives << 3)+1, 8, 96+7, 0, bitsImg);
                 }
             }
 
-            if(troll_title_frame != 0xFF) {
+            if(attract_mode) {
+                if(global_tick & 64)
+                    queue_draw_sprite_frame(bossTitlesImg, GRID_CENTER_X, 16, BOSS_TITLES_TAG_DEMO_START, 0);
+            } else if(troll_title_frame != 0xFF) {
                 queue_draw_sprite_frame(bossTitlesImg, GRID_CENTER_X, 16, troll_title_frame, 0);
             }
 
@@ -418,8 +451,12 @@ int main () {
             prev_win_state = win_state;
         }
 
-        stop_music();
-        play_song(ASSET__music__Kachi_Wins_mid, REPEAT_LOOP);
+        if(game_state == GAME_STATE_FINISH) {
+            if(!attract_mode) {
+                stop_music();
+                play_song(ASSET__music__Kachi_Wins_mid, REPEAT_LOOP);
+            }
+        }
 
         if(game_mode == MODE_MARATHON) {
             if(lives) {
@@ -432,6 +469,12 @@ int main () {
         } else if(game_mode == MODE_TIME_ATTACK) {
             puzzle_counter_pos_x = 17;
             puzzle_counter_pos_y = 35;
+        }
+
+        if(attract_mode) {
+            enable_playback = 0;
+            game_state = GAME_STATE_TITLE;
+            clear_game_timer();
         }
 
         while(game_state == GAME_STATE_FINISH) {
